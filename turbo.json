@@ -1,0 +1,37 @@
+{
+  "$schema": "https://turbo.build/schema.json",
+  "tasks": {
+    "build": {
+      "dependsOn": ["^build"],
+      "outputs": ["dist/**", "build/**", ".next/**"],
+      "env": [
+        "NODE_ENV",
+        "NEXT_PUBLIC_POSTHOG_KEY",
+        "NEXT_PUBLIC_POSTHOG_HOST",
+        "NEXT_PUBLIC_ENVIRONMENT",
+        "POSTHOG_API_KEY",
+        "POSTHOG_HOST",
+        "RESEND_API_KEY",
+        "RESEND_FROM_EMAIL",
+        "EARLY_ACCESS_EMAIL"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "env": [
+        "NEXT_PUBLIC_POSTHOG_KEY",
+        "NEXT_PUBLIC_POSTHOG_HOST",
+        "POSTHOG_API_KEY",
+        "POSTHOG_HOST",
+        "RESEND_API_KEY",
+        "RESEND_FROM_EMAIL",
+        "EARLY_ACCESS_EMAIL",
+        "NODE_ENV"
+      ]
+    },
+    "lint": {},
+    "test": {
+      "dependsOn": ["build", "^build"]
+    }
+  }
+}

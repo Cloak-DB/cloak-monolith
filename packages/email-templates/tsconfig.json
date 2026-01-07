@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "module": "esnext",
+    "jsx": "react",
+    "outDir": "./dist",
+    "rootDir": "."
+  },
+  "include": ["emails/**/*", "styles/**/*"],
+  "exclude": ["node_modules", "dist", ".react-email"]
+}

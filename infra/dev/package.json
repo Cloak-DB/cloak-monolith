@@ -1,0 +1,7 @@
+{
+  "name": "infra/dev",
+  "main": "index.js",
+  "scripts": {},
+  "devDependencies": {},
+  "dependencies": {}
+}

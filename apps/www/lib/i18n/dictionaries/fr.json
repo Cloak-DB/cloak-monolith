@@ -1,0 +1,318 @@
+{
+  "navbar": {
+    "docs": "Docs",
+    "github": "GitHub",
+    "getStarted": "Commencer"
+  },
+  "hero": {
+    "title": "CLOAKDB",
+    "tagline": "Données de test de qualité production.",
+    "taglineHighlight": "Open-source. Auto-hébergé.",
+    "problemBadge": "⚠️ Statut : Obsolète",
+    "problemLine1": "RepliByte : Dernier commit il y a 20 mois",
+    "problemLine2": "Snaplet : Arrêté en janvier 2025",
+    "solutionBadge": "✓ Statut : Actif",
+    "badge1Title": "Open Source",
+    "badge2Title": "CLI d'abord",
+    "badge3Title": "Données Locales",
+    "ctaPrimary": "Lire la Doc →",
+    "ctaSecondary": "GitHub",
+    "featuresTitle": "Fonctionnalités Principales",
+    "feature1Title": "Introspection de Schéma",
+    "feature1Description": "Extraction du schéma + relations. Filtrage par table, lignes, colonnes.",
+    "feature2Title": "Anonymisation Configurable",
+    "feature2Description": "Règles TypeScript. Transformation des DPI avant export.",
+    "feature3Title": "Gestion des Instantanés",
+    "feature3Description": "Versions d'états complexes. Restauration de données déterministes.",
+    "feature4Highlight": "Essentiel pour le QA, Démos & Tests"
+  },
+  "features": {
+    "restoration": {
+      "title": "Outil de Restauration",
+      "items": [
+        "Connectez-vous à votre base de données de production et exportez les données vers votre environnement de développement",
+        "Filtrage intelligent : Restaurez seulement ce dont vous avez besoin (ex. '5 utilisateurs + toutes les données associées')",
+        "Parcours automatique des clés étrangères + inclusion explicite de tables",
+        "Commencez avec PostgreSQL, étendez à d'autres bases de données"
+      ]
+    },
+    "anonymization": {
+      "title": "Outil d'Anonymisation",
+      "items": [
+        "Définissez des règles d'anonymisation avec des mappings Faker",
+        "Transformez les champs sensibles avant que les données n'atteignent votre machine locale",
+        "Basé sur la configuration, auditable, compatible git"
+      ]
+    },
+    "useCases": {
+      "title": "Cas d'Usage",
+      "subtitle": "L'Avantage Différenciant",
+      "items": [
+        "Sauvegardez et restaurez des scénarios de test spécifiques en un clic",
+        "Exemple : 'Utilisateur avec 3 éléments en attente, un en retard'",
+        "Parfait pour le QA, les démos et les workflows de test répétables",
+        "Partageable en équipe, versionné dans votre dépôt",
+        "Aucun secret stocké"
+      ]
+    }
+  },
+  "howItWorks": {
+    "badge": "Comment Ça Fonctionne",
+    "title": "De la Production à une Base de Données Dev Sécurisée",
+    "description": "Cloak DB capture votre schéma de production, identifie les champs sensibles et génère automatiquement des données anonymisées qui semblent réelles tout en protégeant la vie privée.",
+    "benefitsTitle": "Avantages Clés",
+    "benefits": [
+      "Détection automatique des DPI (emails, noms, téléphones)",
+      "Règles d'anonymisation personnalisées pour votre domaine",
+      "Maintient l'intégrité référentielle entre les tables",
+      "Export vers SQL, CSV ou connexion directe à la base de données"
+    ],
+    "step1Badge": "Étape 1 : Données de Production",
+    "step2Badge": "Étape 2 : Données Dev Sécurisées",
+    "arrowText": "ANONYMISER ↓"
+  },
+  "whoItsFor": {
+    "title": "Pour Qui",
+    "audiences": [
+      {
+        "name": "Équipes QA",
+        "description": "Configurez des états de test complexes sans saisie manuelle de données"
+      },
+      {
+        "name": "Développeurs",
+        "description": "Testez avec des données réalistes en local, détectez les cas limites rapidement"
+      },
+      {
+        "name": "Démo/Ventes",
+        "description": "Montrez des scénarios spécifiques aux parties prenantes en quelques secondes"
+      },
+      {
+        "name": "Tests E2E",
+        "description": "Construisez des suites de tests fiables avec des données réalistes"
+      }
+    ]
+  },
+  "whyCloak DB": {
+    "title": "Pourquoi Cloak DB",
+    "description": "La génération de données réalistes a une demande prouvée (RepliByte : 4k étoiles, Snaplet : financé par capital-risque), mais les outils existants ne sont plus maintenus ou payants.",
+    "benefits": [
+      {
+        "title": "Open source",
+        "description": "Piloté par la communauté, activement maintenu"
+      },
+      {
+        "title": "Respect de la vie privée",
+        "description": "Les données restent sur votre machine, l'anonymisation garde les secrets en sécurité"
+      },
+      {
+        "title": "Axé sur les workflows",
+        "description": "Les cas d'usage résolvent de vrais problèmes de QA/démo"
+      },
+      {
+        "title": "Prêt pour la production",
+        "description": "Conçu avec une évolution cloud à l'esprit"
+      }
+    ],
+    "cta": "Commencez en local aujourd'hui. Déployez dans le cloud demain."
+  },
+  "emailCapture": {
+    "badge": "Commencer",
+    "title": "Prêt à Transformer Votre Flux de Développement?",
+    "description": "Rejoignez les développeurs qui construisent de meilleurs logiciels avec des données de test réalistes.",
+    "placeholder": "votre.email@entreprise.com",
+    "buttonText": "Accès Anticipé",
+    "successMessage": "Merci ! Nous vous tiendrons informé."
+  },
+  "footer": {
+    "tagline": "Génération de données réalistes pour le développement.",
+    "product": "Produit",
+    "productLinks": [
+      {
+        "label": "Documentation",
+        "href": "/docs"
+      },
+      {
+        "label": "Démarrage",
+        "href": "/docs/getting-started"
+      }
+    ],
+    "resources": "Ressources",
+    "resourceLinks": [
+      {
+        "label": "GitHub",
+        "href": "https://github.com/Cloak-DB/cloakdb"
+      },
+      {
+        "label": "Problèmes",
+        "href": "https://github.com/Cloak-DB/cloakdb/issues"
+      }
+    ],
+    "legal": "Légal",
+    "legalLinks": [
+      {
+        "label": "Confidentialité",
+        "href": "/privacy"
+      },
+      {
+        "label": "Conditions",
+        "href": "/terms"
+      }
+    ],
+    "copyright": "© 2025 Cloak DB. Open source sous licence MIT.",
+    "joinBeta": {
+      "title": "Rejoindre la Bêta",
+      "description": "Obtenez un accès anticipé à Cloak DB et aidez à façonner l'avenir du seeding de bases de données.",
+      "buttonText": "Demander l'Accès Bêta"
+    }
+  },
+  "privacy": {
+    "title": "Politique de Confidentialité",
+    "lastUpdated": "Dernière mise à jour : Novembre 2025",
+    "sections": {
+      "introduction": {
+        "title": "1. Introduction",
+        "content": "Cloak DB (« nous », « notre » ou « nos ») s'engage à protéger votre vie privée. Cette Politique de Confidentialité explique comment nous collectons, utilisons, divulguons et protégeons vos informations lorsque vous visitez notre site web ou utilisez nos services."
+      },
+      "informationWeCollect": {
+        "title": "2. Informations que Nous Collectons",
+        "personalInfo": {
+          "title": "2.1 Informations Personnelles",
+          "content": "Nous pouvons collecter des informations personnelles que vous nous fournissez volontairement lorsque vous :\n• Vous inscrivez pour un accès anticipé\n• Nous contactez via notre site web\n• Vous abonnez à notre bulletin\n\nCes informations peuvent inclure : adresse courriel, nom et informations sur l'entreprise."
+        },
+        "usageData": {
+          "title": "2.2 Données d'Utilisation",
+          "content": "Nous collectons automatiquement certaines informations lorsque vous visitez notre site web, notamment :\n• Adresse IP\n• Type et version du navigateur\n• Pages visitées et temps passé\n• Site web référent\n• Informations sur l'appareil"
+        },
+        "cookies": {
+          "title": "2.3 Témoins et Technologies de Suivi",
+          "content": "Nous utilisons des témoins (cookies) et des technologies similaires pour suivre l'activité sur notre site web et stocker certaines informations. Vous pouvez contrôler vos préférences en matière de témoins via notre bannière de consentement."
+        }
+      },
+      "howWeUse": {
+        "title": "3. Comment Nous Utilisons Vos Informations",
+        "content": "Nous utilisons les informations collectées pour :\n• Fournir, maintenir et améliorer nos services\n• Vous envoyer des mises à jour concernant Cloak DB\n• Répondre à vos demandes et requêtes d'assistance\n• Analyser les modèles d'utilisation et améliorer l'expérience utilisateur\n• Détecter et prévenir la fraude ou les abus\n• Respecter nos obligations légales"
+      },
+      "dataSharing": {
+        "title": "4. Partage et Divulgation des Données",
+        "content": "Nous ne vendons pas vos informations personnelles. Nous pouvons partager vos informations uniquement dans les circonstances suivantes :\n• Avec votre consentement\n• Avec des fournisseurs de services qui nous aident à exploiter notre site web (ex. fournisseurs d'analytique)\n• Pour respecter nos obligations légales\n• Pour protéger nos droits et prévenir la fraude"
+      },
+      "yourRights": {
+        "title": "5. Vos Droits (Conformité à la Loi 25 du Québec)",
+        "content": "En vertu de la Loi 25 du Québec, vous disposez des droits suivants :\n• Droit d'accéder à vos renseignements personnels\n• Droit de rectification des informations inexactes\n• Droit de suppression de vos renseignements personnels\n• Droit à la portabilité des données\n• Droit de retirer votre consentement à tout moment\n• Droit d'opposition au traitement\n\nPour exercer ces droits, veuillez nous contacter à privacy@cloakdb.com."
+      },
+      "dataRetention": {
+        "title": "6. Conservation des Données",
+        "content": "Nous conservons vos renseignements personnels uniquement le temps nécessaire pour atteindre les objectifs décrits dans cette Politique de Confidentialité, sauf si une période de conservation plus longue est requise par la loi."
+      },
+      "security": {
+        "title": "7. Sécurité",
+        "content": "Nous mettons en œuvre des mesures techniques et organisationnelles appropriées pour protéger vos renseignements personnels. Toutefois, aucune méthode de transmission sur Internet n'est sécurisée à 100%."
+      },
+      "internationalTransfers": {
+        "title": "8. Transferts Internationaux de Données",
+        "content": "Vos informations peuvent être transférées et traitées dans des pays autres que votre pays de résidence. Nous veillons à ce que des garanties appropriées soient en place pour ces transferts."
+      },
+      "childrenPrivacy": {
+        "title": "9. Confidentialité des Enfants",
+        "content": "Nos services ne sont pas destinés aux enfants de moins de 13 ans. Nous ne collectons pas sciemment d'informations personnelles auprès d'enfants."
+      },
+      "changes": {
+        "title": "10. Modifications de Cette Politique",
+        "content": "Nous pouvons mettre à jour cette Politique de Confidentialité de temps à autre. Nous vous informerons de tout changement en publiant la nouvelle Politique sur cette page et en mettant à jour la date de « Dernière mise à jour »."
+      },
+      "contact": {
+        "title": "11. Nous Contacter",
+        "content": "Si vous avez des questions concernant cette Politique de Confidentialité ou souhaitez exercer vos droits, veuillez nous contacter à :\n\nCourriel : privacy@cloakdb.com"
+      }
+    }
+  },
+  "terms": {
+    "title": "Conditions d'Utilisation",
+    "lastUpdated": "Dernière mise à jour : Novembre 2025",
+    "sections": {
+      "acceptance": {
+        "title": "1. Acceptation des Conditions",
+        "content": "En accédant ou en utilisant Cloak DB (le « Service »), vous acceptez d'être lié par ces Conditions d'Utilisation (« Conditions »). Si vous n'acceptez pas ces Conditions, n'utilisez pas le Service."
+      },
+      "description": {
+        "title": "2. Description du Service",
+        "content": "Cloak DB est un outil open source pour la capture de schémas de bases de données, l'anonymisation et la génération de données de test. Le Service est fourni « tel quel » et « selon disponibilité » sans garantie d'aucune sorte."
+      },
+      "license": {
+        "title": "3. Licence Open Source",
+        "content": "Le logiciel Cloak DB est sous licence MIT. Vous êtes libre d'utiliser, de modifier et de distribuer le logiciel conformément aux termes de la licence disponibles dans notre dépôt GitHub."
+      },
+      "userResponsibilities": {
+        "title": "4. Responsabilités de l'Utilisateur",
+        "content": "Vous acceptez de :\n• Utiliser le Service conformément à toutes les lois et réglementations applicables\n• Ne pas utiliser le Service à des fins illégales ou non autorisées\n• Ne pas tenter d'obtenir un accès non autorisé à toute partie du Service\n• Ne pas transmettre de virus, malware ou autre code nuisible\n• Vous assurer d'avoir l'autorisation appropriée pour capturer et traiter les informations de base de données\n• Respecter les lois sur la protection des données lors du traitement d'informations personnelles"
+      },
+      "dataPrivacy": {
+        "title": "5. Données et Confidentialité",
+        "content": "Lors de l'utilisation de Cloak DB :\n• Vous conservez tous les droits sur vos données\n• Cloak DB traite les données localement sur votre machine par défaut\n• Nous n'accédons pas, ne stockons pas et ne transmettons pas vos informations de base de données\n• Vous êtes responsable d'assurer une anonymisation appropriée des données sensibles\n• Notre Politique de Confidentialité régit la collecte et l'utilisation des informations via notre site web"
+      },
+      "intellectualProperty": {
+        "title": "6. Propriété Intellectuelle",
+        "content": "Le nom, le logo et l'image de marque de Cloak DB sont des marques de commerce de Cloak DB. Le logiciel lui-même est open source sous licence MIT. Vous ne pouvez pas utiliser nos marques sans autorisation écrite préalable."
+      },
+      "prohibitedUses": {
+        "title": "7. Utilisations Interdites",
+        "content": "Vous ne pouvez pas utiliser Cloak DB pour :\n• Traiter des données auxquelles vous n'avez pas l'autorisation d'accéder\n• Violer des lois ou réglementations sur la confidentialité\n• Contourner les mesures de sécurité des bases de données\n• Extraire des données à des fins malveillantes\n• Concurrencer Cloak DB en créant des services commerciaux dérivés sans attribution appropriée"
+      },
+      "disclaimerWarranties": {
+        "title": "8. Exclusion de Garanties",
+        "content": "LE SERVICE EST FOURNI « TEL QUEL » ET « SELON DISPONIBILITÉ » SANS GARANTIE D'AUCUNE SORTE, EXPRESSE OU IMPLICITE, Y COMPRIS MAIS SANS S'Y LIMITER LES GARANTIES IMPLICITES DE QUALITÉ MARCHANDE, D'ADAPTATION À UN USAGE PARTICULIER ET DE NON-CONTREFAÇON.\n\nNous ne garantissons pas que :\n• Le Service répondra à vos exigences\n• Le Service sera ininterrompu, sécurisé ou exempt d'erreurs\n• Les erreurs seront corrigées\n• Les résultats obtenus en utilisant le Service seront précis ou fiables"
+      },
+      "limitationLiability": {
+        "title": "9. Limitation de Responsabilité",
+        "content": "DANS LA MESURE MAXIMALE PERMISE PAR LA LOI, CLOAKDB NE SERA PAS RESPONSABLE DES DOMMAGES INDIRECTS, ACCESSOIRES, SPÉCIAUX, CONSÉCUTIFS OU PUNITIFS, OU DE TOUTE PERTE DE PROFITS OU DE REVENUS, QU'ILS SOIENT ENCOURUS DIRECTEMENT OU INDIRECTEMENT, OU DE TOUTE PERTE DE DONNÉES, D'UTILISATION, DE CLIENTÈLE OU D'AUTRES PERTES INTANGIBLES.\n\nNotre responsabilité totale ne dépassera pas 100 $ CAD ou le montant que vous nous avez payé au cours des 12 derniers mois, selon le montant le plus élevé."
+      },
+      "indemnification": {
+        "title": "10. Indemnisation",
+        "content": "Vous acceptez d'indemniser et de dégager de toute responsabilité Cloak DB et ses affiliés contre toute réclamation, dommage, perte, responsabilité et dépense (y compris les frais juridiques) découlant de :\n• Votre utilisation du Service\n• Votre violation de ces Conditions\n• Votre violation des droits d'une autre partie\n• Votre violation de toute loi ou réglementation applicable"
+      },
+      "changes": {
+        "title": "11. Modifications des Conditions",
+        "content": "Nous nous réservons le droit de modifier ces Conditions à tout moment. Nous informerons les utilisateurs de tout changement important en publiant les nouvelles Conditions sur notre site web et en mettant à jour la date de « Dernière mise à jour ». Votre utilisation continue du Service après ces changements constitue une acceptation des nouvelles Conditions."
+      },
+      "termination": {
+        "title": "12. Résiliation",
+        "content": "Nous pouvons résilier ou suspendre votre accès au Service à tout moment, sans préavis, pour quelque raison que ce soit, y compris si vous violez ces Conditions. Lors de la résiliation, votre droit d'utiliser le Service cessera immédiatement."
+      },
+      "governingLaw": {
+        "title": "13. Loi Applicable",
+        "content": "Ces Conditions seront régies et interprétées conformément aux lois de la province de Québec, Canada, sans égard à ses dispositions en matière de conflits de lois. Tout litige sera résolu devant les tribunaux du Québec."
+      },
+      "contact": {
+        "title": "14. Coordonnées",
+        "content": "Si vous avez des questions concernant ces Conditions, veuillez nous contacter à :\n\nCourriel : legal@cloakdb.com"
+      }
+    }
+  },
+  "emails": {
+    "earlyAccess": {
+      "subject": "Nouvelle Demande d'Accès Anticipé",
+      "heading": "🎉 Nouvelle Demande d'Accès Anticipé",
+      "intro": "Quelqu'un vient de demander un accès anticipé à Cloak!",
+      "emailLabel": "Courriel",
+      "companyLabel": "Entreprise",
+      "useCaseLabel": "Cas d'Usage",
+      "submittedAtLabel": "Soumis le",
+      "note": "📌 Faites un suivi avec cet utilisateur pour l'intégrer à Cloak.",
+      "footerTagline": "Cloak - Capture de schéma de base de données et anonymisation",
+      "footerWebsite": "cloak.dev"
+    },
+    "welcome": {
+      "subject": "Bienvenue à l'Accès Anticipé Cloak",
+      "heading": "Bienvenue à Cloak! 🎉",
+      "intro": "Merci d'avoir demandé un accès anticipé. Voici les ressources pour commencer avec des données de test réalistes.",
+      "resourcesHeading": "Ressources Disponibles",
+      "docsLabel": "Documentation",
+      "docsDescription": "Apprenez à capturer des schémas, anonymiser des données et gérer des instantanés.",
+      "githubLabel": "Dépôt GitHub",
+      "githubDescription": "Explorez le code source, signalez des problèmes et contribuez au projet.",
+      "outro": "Nous vous tiendrons informé à mesure que nous ajoutons de nouvelles fonctionnalités.",
+      "footerTagline": "Cloak - Capture de schéma de base de données et anonymisation",
+      "footerWebsite": "cloak.dev"
+    }
+  }
+}

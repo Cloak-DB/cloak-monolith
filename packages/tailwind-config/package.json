@@ -1,0 +1,13 @@
+{
+  "name": "@cloak/tailwind-config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./index.ts",
+  "exports": {
+    ".": "./index.ts"
+  },
+  "devDependencies": {
+    "tailwindcss": "^3.4.1"
+  }
+}

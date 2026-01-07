@@ -1,0 +1,50 @@
+{
+  "name": "@cloak/ui",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    "./components/banner": "./components/banner.tsx",
+    "./components/button": "./components/button.tsx",
+    "./components/input": "./components/input.tsx",
+    "./components/label": "./components/label.tsx",
+    "./components/select": "./components/select.tsx",
+    "./components/card": "./components/card.tsx",
+    "./components/badge": "./components/badge.tsx",
+    "./components/modal": "./components/modal.tsx",
+    "./components/alert": "./components/alert.tsx",
+    "./components/toast": "./components/toast.tsx",
+    "./components/spinner": "./components/spinner.tsx",
+    "./components/error-boundary": "./components/error-boundary.tsx",
+    "./components/icon": "./components/icon.tsx",
+    "./lib/*": "./lib/*.ts",
+    "./tailwind.config": "./tailwind.config.ts"
+  },
+  "scripts": {
+    "lint": "eslint . --max-warnings 0",
+    "typecheck": "tsc --noEmit"
+  },
+  "peerDependencies": {
+    "react": "^18.0.0 || ^19.0.0",
+    "react-dom": "^18.0.0 || ^19.0.0"
+  },
+  "devDependencies": {
+    "@cloak/eslint-config": "workspace:*",
+    "@cloak/tailwind-config": "workspace:*",
+    "@eslint/js": "^9.39.0",
+    "@types/react": ">=18.3.0",
+    "@types/react-dom": ">=18.3.0",
+    "@typescript-eslint/eslint-plugin": "^8.0.0",
+    "@typescript-eslint/parser": "^8.0.0",
+    "eslint": "^9.39.0",
+    "tailwindcss": "^3.4.1",
+    "typescript": "~5.0.4"
+  },
+  "dependencies": {
+    "@radix-ui/react-slot": "^1.2.4",
+    "class-variance-authority": "^0.7.0",
+    "clsx": "^2.1.0",
+    "lucide-react": "^0.553.0",
+    "tailwind-merge": "^2.2.0"
+  }
+}

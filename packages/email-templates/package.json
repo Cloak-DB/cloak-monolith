@@ -1,0 +1,26 @@
+{
+  "name": "@cloak/email-templates",
+  "version": "0.0.1",
+  "private": true,
+  "type": "module",
+  "main": "./emails/index.ts",
+  "exports": {
+    ".": "./emails/index.ts",
+    "./early-access-request": "./emails/early-access-request.tsx",
+    "./early-access-welcome": "./emails/early-access-welcome.tsx"
+  },
+  "scripts": {
+    "dev": "email dev --dir emails --port 3003",
+    "export": "email export",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@react-email/components": "^0.0.25",
+    "react": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "react-email": "^3.0.1",
+    "typescript": "^5.9.2"
+  }
+}

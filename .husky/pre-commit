@@ -1,0 +1,20 @@
+#!/bin/sh
+set -e
+
+pnpm lint-staged
+
+filter() {
+  rg -i "(error|failed|fail|✖)" "$1" || true
+}
+
+run() {
+  CMD="$1"
+  TMP=$(mktemp)
+  sh -c "$CMD" >"$TMP" 2>&1 || { code=$?; filter "$TMP"; rm -f "$TMP"; exit $code; }
+  filter "$TMP"
+  rm -f "$TMP"
+}
+
+run "pnpm lint"
+run "pnpm -r --if-present typecheck"
+run "pnpm -r --if-present test"

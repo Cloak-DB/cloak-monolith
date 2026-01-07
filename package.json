@@ -1,0 +1,48 @@
+{
+  "name": "cloak-db",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "prepare": "husky",
+    "format": "pnpm prettier . --write",
+    "build": "pnpm -r build",
+    "typecheck": "pnpm -r typecheck",
+    "dev": "dotenv -e .env -- turbo dev --filter=@apps/www",
+    "db:start": "docker compose -f infra/dev/db/docker-compose.yml up -d",
+    "db:stop": "docker compose -f infra/dev/db/docker-compose.yml down",
+    "db:reset": "docker compose -f infra/dev/db/docker-compose.yml down -v && docker volume rm db_local_data >/dev/null 2>&1 || true && docker compose -f infra/dev/db/docker-compose.yml up -d",
+    "lint": "pnpm -r --if-present lint",
+    "check": "pnpm -r --if-present lint && pnpm -r --if-present typecheck",
+    "test": "pnpm -r test",
+    "test:integration": "pnpm -r test:integration"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "dotenv": "^16.6.1"
+  },
+  "devDependencies": {
+    "@changesets/cli": "^2.29.6",
+    "@types/node": "^24.3.3",
+    "dotenv-cli": "^10.0.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^15.5.0",
+    "prettier": "^3.3.3",
+    "tsx": "^4.20.6",
+    "turbo": "^2.5.6",
+    "typescript": "^5.9.2"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "^19.0.0",
+      "@types/react-dom": "^19.0.0"
+    }
+  },
+  "packageManager": "pnpm@10.18.3",
+  "engines": {
+    "node": ">=22 <25",
+    "pnpm": ">=10"
+  }
+}
