@@ -7,10 +7,10 @@
 <h4 align="center">Production-grade test data. Open-source. Self-hosted.</h4>
 
 <p align="center">
-  <a href="https://github.com/Cloak-DB/cloak-db/actions/workflows/ci.yml">
-    <img src="https://github.com/Cloak-DB/cloak-db/actions/workflows/ci.yml/badge.svg" alt="CI Status">
+  <a href="https://github.com/Cloak-DB/cloak-monolith/actions/workflows/ci.yml">
+    <img src="https://github.com/Cloak-DB/cloak-monolith/actions/workflows/ci.yml/badge.svg" alt="CI Status">
   </a>
-  <a href="https://github.com/Cloak-DB/cloak-db/blob/main/LICENSE">
+  <a href="https://github.com/Cloak-DB/cloak-monolith/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
   </a>
   <a href="https://cloak-db.com">
@@ -43,13 +43,13 @@ Your data never leaves your machine.
 
 ## Features
 
-| Feature | Description |
-|---------|-------------|
-| **Schema Introspection** | Extract schema + relationships. Filter by table, rows, columns. |
-| **Configurable Anonymization** | TypeScript-based rules. Transform PII before export. |
-| **Snapshot Management** | Version complex DB states. Restore deterministic test data. |
-| **Local-First** | Self-hosted. Your data stays on your infrastructure. |
-| **CLI-First** | Scriptable workflows for CI/CD integration. |
+| Feature                        | Description                                                     |
+| ------------------------------ | --------------------------------------------------------------- |
+| **Schema Introspection**       | Extract schema + relationships. Filter by table, rows, columns. |
+| **Configurable Anonymization** | TypeScript-based rules. Transform PII before export.            |
+| **Snapshot Management**        | Version complex DB states. Restore deterministic test data.     |
+| **Local-First**                | Self-hosted. Your data stays on your infrastructure.            |
+| **CLI-First**                  | Scriptable workflows for CI/CD integration.                     |
 
 ## How It Works
 
@@ -79,7 +79,7 @@ Your data never leaves your machine.
 
 ```bash
 # Clone the repository
-git clone https://github.com/Cloak-DB/cloak-db.git
+git clone https://github.com/Cloak-DB/cloak-monolith.git
 cd cloak-db
 
 # Install dependencies
@@ -158,7 +158,7 @@ pnpm test         # Run tests
 
 - **Website**: [cloak-db.com](https://cloak-db.com)
 - **Email**: [info@cloak-db.com](mailto:info@cloak-db.com)
-- **Issues**: [GitHub Issues](https://github.com/Cloak-DB/cloak-db/issues)
+- **Issues**: [GitHub Issues](https://github.com/Cloak-DB/cloak-monolith/issues)
 
 ## License
 

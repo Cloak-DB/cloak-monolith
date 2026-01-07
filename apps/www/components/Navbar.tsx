@@ -158,7 +158,7 @@ export function Navbar({ locale, dict }: NavbarProps) {
                 {/* GitHub Icon */}
                 <li className="h-full flex items-center">
                   <a
-                    href="https://github.com/Cloak-DB/cloakdb"
+                    href="https://github.com/Cloak-DB/cloak-monolith"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="h-full px-6 flex items-center hover:bg-blue-500 hover:text-black dark:hover:bg-blue-500 dark:hover:text-black hover:shadow-[inset_4px_4px_0px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_4px_4px_0px_rgba(255,255,255,0.1)] hover:scale-105 transition-all duration-300 ease-out group"
@@ -276,7 +276,7 @@ export function Navbar({ locale, dict }: NavbarProps) {
                 </li>
                 <li>
                   <a
-                    href="https://github.com/Cloak-DB/cloakdb"
+                    href="https://github.com/Cloak-DB/cloak-monolith"
                     target="_blank"
                     rel="noopener noreferrer"
                     className="flex items-center gap-3 px-6 py-5 font-black text-lg uppercase hover:bg-blue-500 hover:text-black hover:shadow-[inset_6px_0px_0px_rgba(0,0,0,0.2)] dark:hover:shadow-[inset_6px_0px_0px_rgba(255,255,255,0.1)] hover:translate-x-2 transition-all duration-300 ease-out group"

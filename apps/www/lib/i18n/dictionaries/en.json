@@ -140,11 +140,11 @@
     "resourceLinks": [
       {
         "label": "GitHub",
-        "href": "https://github.com/Cloak-DB/cloakdb"
+        "href": "https://github.com/Cloak-DB/cloak-monolith"
       },
       {
         "label": "Issues",
-        "href": "https://github.com/Cloak-DB/cloakdb/issues"
+        "href": "https://github.com/Cloak-DB/cloak-monolith/issues"
       }
     ],
     "legal": "Legal",

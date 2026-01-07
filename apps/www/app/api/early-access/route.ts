@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
     if (!emailRegex.test(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -78,7 +78,7 @@ export async function POST(request: NextRequest) {
           {
             dateStyle: 'long',
             timeStyle: 'short',
-          }
+          },
         ),
         translations: {
           heading: teamTranslations.heading,
@@ -91,7 +91,7 @@ export async function POST(request: NextRequest) {
           footerTagline: teamTranslations.footerTagline,
           footerWebsite: teamTranslations.footerWebsite,
         },
-      })
+      }),
     );
 
     const userHtml = await render(
@@ -109,8 +109,8 @@ export async function POST(request: NextRequest) {
           footerWebsite: userTranslations.footerWebsite,
         },
         docsUrl: `https://cloak-db.com/${locale}/docs`,
-        githubUrl: 'https://github.com/Cloak-DB/cloakdb',
-      })
+        githubUrl: 'https://github.com/Cloak-DB/cloak-monolith',
+      }),
     );
 
     const recipientEmail =
@@ -158,7 +158,7 @@ export async function POST(request: NextRequest) {
 
       return NextResponse.json(
         { error: 'Failed to send notification' },
-        { status: 500 }
+        { status: 500 },
       );
     }
 
@@ -192,7 +192,7 @@ export async function POST(request: NextRequest) {
 
     return NextResponse.json(
       { error: 'Internal server error' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

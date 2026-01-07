@@ -424,12 +424,13 @@ export function Hero({ dict, locale }: HeroProps) {
                   className="h-auto px-10 py-5 text-lg font-bold hover:shadow-[8px_8px_0px_theme(colors.black)] dark:hover:shadow-[8px_8px_0px_rgba(255,255,255,0.2)] hover:scale-105 transition-all duration-300"
                 >
                   <a
-                    href="https://github.com/Cloak-DB/cloakdb"
+                    href="https://github.com/Cloak-DB/cloak-monolith"
                     onClick={() =>
                       track('button_clicked', {
                         button_id: 'github_cta',
                         location: 'hero',
-                        destination: 'https://github.com/Cloak-DB/cloakdb',
+                        destination:
+                          'https://github.com/Cloak-DB/cloak-monolith',
                       })
                     }
                   >
