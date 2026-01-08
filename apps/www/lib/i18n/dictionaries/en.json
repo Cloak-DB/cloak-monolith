@@ -158,7 +158,7 @@
         "href": "/terms"
       }
     ],
-    "copyright": "© 2025 Cloak DB. Open source under MIT License.",
+    "copyright": "© {year} Cloak DB. Open source under MIT License.",
     "joinBeta": {
       "title": "Join the Beta",
       "description": "Get early access to Cloak DB and help shape the future of database seeding.",

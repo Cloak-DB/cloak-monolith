@@ -219,7 +219,12 @@ export function Footer({ dict, locale }: FooterProps) {
 
         <div className="mt-12 pt-8 border-t-2 border-black dark:border-white">
           <p className="text-center font-bold text-gray-600 dark:text-gray-400">
-            <small className="text-sm">{dict.copyright}</small>
+            <small className="text-sm">
+              {dict.copyright.replace(
+                '{year}',
+                new Date().getFullYear().toString(),
+              )}
+            </small>
           </p>
         </div>
       </div>
