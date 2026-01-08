@@ -5,116 +5,68 @@
     "getStarted": "Get Started"
   },
   "hero": {
-    "title": "CLOAKDB",
-    "tagline": "Production-grade test data.",
-    "taglineHighlight": "Open-source. Self-hosted.",
-    "problemBadge": "⚠️ Status: Deprecated",
-    "problemLine1": "RepliByte: Last commit 20 months ago",
-    "problemLine2": "Snaplet: Discontinued Jan 2025",
-    "solutionBadge": "✓ Status: Active",
-    "badge1Title": "Open Source",
-    "badge2Title": "CLI-First",
-    "badge3Title": "Data Never Leaves",
-    "ctaPrimary": "Read Docs →",
-    "ctaSecondary": "GitHub",
-    "featuresTitle": "Core Features",
-    "feature1Title": "Schema Introspection",
-    "feature1Description": "Extract schema + relationships. Filter by table, rows, columns.",
-    "feature2Title": "Configurable Anonymization",
-    "feature2Description": "TypeScript-based rules. Transform PII before export.",
-    "feature3Title": "Snapshot Management",
-    "feature3Description": "Version complex DB states. Restore deterministic test data.",
-    "feature4Highlight": "Essential for QA, Demos & Testing"
+    "title": "Your database knows more than you think.",
+    "subtitle": "You're just not using it that way yet.",
+    "description": "A Postgres studio that turns your database into a development tool.",
+    "descriptionHighlight": "Understand what happened. Go back to when it worked.",
+    "ctaPrimary": "Get Early Access",
+    "ctaSecondary": "GitHub"
   },
-  "features": {
-    "restoration": {
-      "title": "Restoration Tool",
-      "items": [
-        "Connect to your production database and dump data to your dev environment",
-        "Smart filtering: Restore only what you need (e.g., '5 users + all related data')",
-        "Automatic foreign key traversal + explicit table includes",
-        "Start with PostgreSQL, extend to other databases"
-      ]
+  "differentiators": {
+    "badge": "More than a Postgres studio",
+    "title": "Your database is an underused development tool.",
+    "description": "Most studios let you query data. Cloak DB helps you",
+    "descriptionHighlight": "develop faster",
+    "descriptionEnd": "with it.",
+    "timeMachine": {
+      "title": "Time Machine",
+      "tagline": "Cmd+Z for your database",
+      "description": "Save your database state before risky changes. One click to restore. Iterate without fear."
     },
-    "anonymization": {
-      "title": "Anonymization Tool",
-      "items": [
-        "Define anonymization rules using Faker mappings",
-        "Transform sensitive fields before data touches your local machine",
-        "Config-based, auditable, git-friendly"
-      ]
+    "resourceInspector": {
+      "title": "Resource Inspector",
+      "tagline": "Debug in seconds, not hours",
+      "description": "Type a user ID, see all related resources instantly. No more writing 15 JOINs to understand what happened."
     },
-    "useCases": {
-      "title": "Use Cases",
-      "subtitle": "The Differentiator",
-      "items": [
-        "Save and restore specific test scenarios with one click",
-        "Example: 'User with 3 pending items, one past due'",
-        "Perfect for QA, demos, and repeatable testing workflows",
-        "Team-shareable, version-controlled in your repo",
-        "No secrets stored"
-      ]
+    "captureAnonymize": {
+      "title": "Capture & Anonymize",
+      "tagline": "Real data, zero risk",
+      "description": "Pull production data for realistic testing. Automatically anonymize PII. Ship with confidence."
     }
   },
-  "howItWorks": {
-    "badge": "How It Works",
-    "title": "From Production to Safe Dev Database",
-    "description": "Cloak DB captures your production schema, identifies sensitive fields, and automatically generates anonymized data that looks real but protects privacy.",
-    "benefitsTitle": "Key Benefits",
-    "benefits": [
-      "Automatic detection of PII (emails, names, phones)",
-      "Custom anonymization rules for your domain",
-      "Maintain referential integrity across tables",
-      "Export to SQL, CSV, or direct database connection"
-    ],
-    "step1Badge": "Step 1: Production Data",
-    "step2Badge": "Step 2: Safe Dev Data",
-    "arrowText": "ANONYMIZE ↓"
+  "problemSolution": {
+    "problemBadge": "The problem",
+    "problemTitle": "Development shouldn't feel like walking on eggshells.",
+    "problemLine1": "You're about to run a migration, test a new feature, or debug a weird edge case.",
+    "problemLine2": "And there's that tiny voice:",
+    "problemQuote": "What if this breaks everything?",
+    "problemLine3": "So you make backups. Test in staging. Write defensive code.",
+    "problemConclusion": "You waste time being careful.",
+    "solutionBadge": "The solution",
+    "solutionTitle": "What if you could just... undo?",
+    "solutionLine1": "Cloak DB gives you",
+    "solutionHighlight": "Cmd+Z for your database",
+    "solutionLine2": "Save state before risky changes. Restore in one click. Understand exactly what happened to any resource.",
+    "solutionConclusion": "Develop with confidence. Ship faster."
   },
-  "whoItsFor": {
-    "title": "Who It's For",
-    "audiences": [
-      {
-        "name": "QA Teams",
-        "description": "Set up complex test states without manual data entry"
-      },
-      {
-        "name": "Developers",
-        "description": "Test against realistic data locally, catch edge cases early"
-      },
-      {
-        "name": "Demo/Sales",
-        "description": "Show specific scenarios to stakeholders in seconds"
-      },
-      {
-        "name": "E2E Testing",
-        "description": "Build reliable test suites with realistic data"
-      }
-    ]
+  "whyNow": {
+    "badge": "Why now",
+    "title": "The tools you needed are gone.",
+    "description": "Production-realistic database tooling has proven demand. But the options have dried up.",
+    "snapletBadge": "Discontinued",
+    "snapletTitle": "Snaplet",
+    "snapletDescription": "Venture-backed, shut down January 2025.",
+    "replibyteBadge": "Unmaintained",
+    "replibyteTitle": "RepliByte",
+    "replibyteDescription": "4k GitHub stars, last commit 20+ months ago.",
+    "cloakBadge": "Active & Open Source",
+    "cloakTitle": "Cloak DB is the maintained alternative.",
+    "cloakDescription": "Open source. Self-hosted. Your data never leaves your machine. Built by developers who ship.",
+    "privacyFirst": "Privacy-first",
+    "openSource": "Open source",
+    "activelyMaintained": "Actively maintained"
   },
-  "whyCloak DB": {
-    "title": "Why Cloak DB Matters",
-    "description": "Production-realistic seeding has proven demand (RepliByte: 4k stars, Snaplet: venture-backed), but existing tools are unmaintained or paywalled.",
-    "benefits": [
-      {
-        "title": "Open source",
-        "description": "Community-driven, actively maintained"
-      },
-      {
-        "title": "Privacy-first",
-        "description": "Data stays on your machine, anonymization keeps secrets safe"
-      },
-      {
-        "title": "Workflow-focused",
-        "description": "Use cases solve real QA/demo problems"
-      },
-      {
-        "title": "Production-ready",
-        "description": "Built with a cloud path in mind"
-      }
-    ],
-    "cta": "Get started locally today. Deploy to the cloud tomorrow."
-  },
+
   "emailCapture": {
     "badge": "Get Started",
     "title": "Ready to Transform Your Development Workflow?",

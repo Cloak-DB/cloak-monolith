@@ -5,116 +5,68 @@
     "getStarted": "Commencer"
   },
   "hero": {
-    "title": "CLOAKDB",
-    "tagline": "Données de test de qualité production.",
-    "taglineHighlight": "Open-source. Auto-hébergé.",
-    "problemBadge": "⚠️ Statut : Obsolète",
-    "problemLine1": "RepliByte : Dernier commit il y a 20 mois",
-    "problemLine2": "Snaplet : Arrêté en janvier 2025",
-    "solutionBadge": "✓ Statut : Actif",
-    "badge1Title": "Open Source",
-    "badge2Title": "CLI d'abord",
-    "badge3Title": "Données Locales",
-    "ctaPrimary": "Lire la Doc →",
-    "ctaSecondary": "GitHub",
-    "featuresTitle": "Fonctionnalités Principales",
-    "feature1Title": "Introspection de Schéma",
-    "feature1Description": "Extraction du schéma + relations. Filtrage par table, lignes, colonnes.",
-    "feature2Title": "Anonymisation Configurable",
-    "feature2Description": "Règles TypeScript. Transformation des DPI avant export.",
-    "feature3Title": "Gestion des Instantanés",
-    "feature3Description": "Versions d'états complexes. Restauration de données déterministes.",
-    "feature4Highlight": "Essentiel pour le QA, Démos & Tests"
+    "title": "Votre base de données en sait plus que vous ne le pensez.",
+    "subtitle": "Vous ne l'utilisez simplement pas encore de cette façon.",
+    "description": "Un studio Postgres qui transforme votre base de données en outil de développement.",
+    "descriptionHighlight": "Comprenez ce qui s'est passé. Revenez au moment où ça fonctionnait.",
+    "ctaPrimary": "Accès Anticipé",
+    "ctaSecondary": "GitHub"
   },
-  "features": {
-    "restoration": {
-      "title": "Outil de Restauration",
-      "items": [
-        "Connectez-vous à votre base de données de production et exportez les données vers votre environnement de développement",
-        "Filtrage intelligent : Restaurez seulement ce dont vous avez besoin (ex. '5 utilisateurs + toutes les données associées')",
-        "Parcours automatique des clés étrangères + inclusion explicite de tables",
-        "Commencez avec PostgreSQL, étendez à d'autres bases de données"
-      ]
+  "differentiators": {
+    "badge": "Plus qu'un studio Postgres",
+    "title": "Votre base de données est un outil de développement sous-exploité.",
+    "description": "La plupart des studios vous permettent d'interroger les données. Cloak DB vous aide à",
+    "descriptionHighlight": "développer plus vite",
+    "descriptionEnd": "avec elles.",
+    "timeMachine": {
+      "title": "Time Machine",
+      "tagline": "Cmd+Z pour votre base de données",
+      "description": "Sauvegardez l'état de votre base avant les changements risqués. Un clic pour restaurer. Itérez sans crainte."
     },
-    "anonymization": {
-      "title": "Outil d'Anonymisation",
-      "items": [
-        "Définissez des règles d'anonymisation avec des mappings Faker",
-        "Transformez les champs sensibles avant que les données n'atteignent votre machine locale",
-        "Basé sur la configuration, auditable, compatible git"
-      ]
+    "resourceInspector": {
+      "title": "Inspecteur de Ressources",
+      "tagline": "Déboguez en secondes, pas en heures",
+      "description": "Tapez un ID utilisateur, voyez toutes les ressources liées instantanément. Fini les 15 JOINs pour comprendre ce qui s'est passé."
     },
-    "useCases": {
-      "title": "Cas d'Usage",
-      "subtitle": "L'Avantage Différenciant",
-      "items": [
-        "Sauvegardez et restaurez des scénarios de test spécifiques en un clic",
-        "Exemple : 'Utilisateur avec 3 éléments en attente, un en retard'",
-        "Parfait pour le QA, les démos et les workflows de test répétables",
-        "Partageable en équipe, versionné dans votre dépôt",
-        "Aucun secret stocké"
-      ]
+    "captureAnonymize": {
+      "title": "Capture & Anonymisation",
+      "tagline": "Données réelles, zéro risque",
+      "description": "Récupérez les données de production pour des tests réalistes. Anonymisez automatiquement les DPI. Livrez avec confiance."
     }
   },
-  "howItWorks": {
-    "badge": "Comment Ça Fonctionne",
-    "title": "De la Production à une Base de Données Dev Sécurisée",
-    "description": "Cloak DB capture votre schéma de production, identifie les champs sensibles et génère automatiquement des données anonymisées qui semblent réelles tout en protégeant la vie privée.",
-    "benefitsTitle": "Avantages Clés",
-    "benefits": [
-      "Détection automatique des DPI (emails, noms, téléphones)",
-      "Règles d'anonymisation personnalisées pour votre domaine",
-      "Maintient l'intégrité référentielle entre les tables",
-      "Export vers SQL, CSV ou connexion directe à la base de données"
-    ],
-    "step1Badge": "Étape 1 : Données de Production",
-    "step2Badge": "Étape 2 : Données Dev Sécurisées",
-    "arrowText": "ANONYMISER ↓"
+  "problemSolution": {
+    "problemBadge": "Le problème",
+    "problemTitle": "Le développement ne devrait pas donner l'impression de marcher sur des œufs.",
+    "problemLine1": "Vous êtes sur le point d'exécuter une migration, tester une nouvelle fonctionnalité ou déboguer un cas limite étrange.",
+    "problemLine2": "Et il y a cette petite voix :",
+    "problemQuote": "Et si ça cassait tout ?",
+    "problemLine3": "Alors vous faites des sauvegardes. Testez en staging. Écrivez du code défensif.",
+    "problemConclusion": "Vous perdez du temps à être prudent.",
+    "solutionBadge": "La solution",
+    "solutionTitle": "Et si vous pouviez simplement... annuler ?",
+    "solutionLine1": "Cloak DB vous offre",
+    "solutionHighlight": "Cmd+Z pour votre base de données",
+    "solutionLine2": "Sauvegardez l'état avant les changements risqués. Restaurez en un clic. Comprenez exactement ce qui est arrivé à n'importe quelle ressource.",
+    "solutionConclusion": "Développez avec confiance. Livrez plus vite."
   },
-  "whoItsFor": {
-    "title": "Pour Qui",
-    "audiences": [
-      {
-        "name": "Équipes QA",
-        "description": "Configurez des états de test complexes sans saisie manuelle de données"
-      },
-      {
-        "name": "Développeurs",
-        "description": "Testez avec des données réalistes en local, détectez les cas limites rapidement"
-      },
-      {
-        "name": "Démo/Ventes",
-        "description": "Montrez des scénarios spécifiques aux parties prenantes en quelques secondes"
-      },
-      {
-        "name": "Tests E2E",
-        "description": "Construisez des suites de tests fiables avec des données réalistes"
-      }
-    ]
+  "whyNow": {
+    "badge": "Pourquoi maintenant",
+    "title": "Les outils dont vous aviez besoin ont disparu.",
+    "description": "L'outillage de base de données réaliste a une demande prouvée. Mais les options se sont taries.",
+    "snapletBadge": "Arrêté",
+    "snapletTitle": "Snaplet",
+    "snapletDescription": "Financé par capital-risque, fermé en janvier 2025.",
+    "replibyteBadge": "Non maintenu",
+    "replibyteTitle": "RepliByte",
+    "replibyteDescription": "4k étoiles GitHub, dernier commit il y a 20+ mois.",
+    "cloakBadge": "Actif & Open Source",
+    "cloakTitle": "Cloak DB est l'alternative maintenue.",
+    "cloakDescription": "Open source. Auto-hébergé. Vos données ne quittent jamais votre machine. Construit par des développeurs qui livrent.",
+    "privacyFirst": "Respect de la vie privée",
+    "openSource": "Open source",
+    "activelyMaintained": "Activement maintenu"
   },
-  "whyCloak DB": {
-    "title": "Pourquoi Cloak DB",
-    "description": "La génération de données réalistes a une demande prouvée (RepliByte : 4k étoiles, Snaplet : financé par capital-risque), mais les outils existants ne sont plus maintenus ou payants.",
-    "benefits": [
-      {
-        "title": "Open source",
-        "description": "Piloté par la communauté, activement maintenu"
-      },
-      {
-        "title": "Respect de la vie privée",
-        "description": "Les données restent sur votre machine, l'anonymisation garde les secrets en sécurité"
-      },
-      {
-        "title": "Axé sur les workflows",
-        "description": "Les cas d'usage résolvent de vrais problèmes de QA/démo"
-      },
-      {
-        "title": "Prêt pour la production",
-        "description": "Conçu avec une évolution cloud à l'esprit"
-      }
-    ],
-    "cta": "Commencez en local aujourd'hui. Déployez dans le cloud demain."
-  },
+
   "emailCapture": {
     "badge": "Commencer",
     "title": "Prêt à Transformer Votre Flux de Développement?",

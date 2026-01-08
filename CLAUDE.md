@@ -6,6 +6,41 @@ This document helps AI assistants understand the project structure, conventions,
 
 **Cloak DB** is an open-source, local-first database studio tool.
 
+## Business Positioning
+
+### Target Audience
+- **Primary**: Solo developers and indie hackers working on side projects or small startups
+- **Secondary**: Small teams (2-5 devs) who need to share database states
+- **Aspirational**: Developers who become internal champions at larger companies
+
+### Core Philosophy
+"Your database knows more than you think. You're just not using it that way yet."
+
+Cloak DB is a **Postgres studio built for development** - not just for querying, but for making your database work as a development tool. The goal is to help developers ship faster with confidence.
+
+### Key Differentiators (Features)
+
+| Feature | What it does | Value proposition |
+|---------|--------------|-------------------|
+| **Time Machine** | Save/restore database states with one click | "Cmd+Z for your database" - iterate without fear |
+| **Resource Inspector** | Type a user ID, see all related resources with relevance scoring | Debug in seconds, not hours of writing JOINs |
+| **Capture & Anonymize** | Pull production data, automatically anonymize PII | Test with real data without GDPR headaches |
+
+### Tone & Messaging
+- **Bold but responsible** - empowering, not reckless
+- **Pragmatic** - "Built for devs who ship. Not fancy. Just useful."
+- Avoid: "stop being careful" (sounds irresponsible)
+- Prefer: "develop with confidence", "iterate without fear"
+
+### Competitive Landscape
+- RepliByte: 4k GitHub stars, last commit 20+ months ago (unmaintained)
+- Snaplet: Venture-backed, discontinued Jan 2025
+- Cloak DB positions as the **active, maintained, open-source alternative**
+
+### Future Roadmap
+- AI chat integration: Connect API key to chat with an AI model about your data
+- CLI that triggers API commands (GUI-first, CLI as complement)
+
 - **Website**: https://cloak-db.com
 - **Contact**: info@cloak-db.com
 - **Package Manager**: pnpm (workspace-based monorepo)

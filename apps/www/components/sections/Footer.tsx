@@ -81,11 +81,22 @@ export function Footer({ dict, locale }: FooterProps) {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-8 md:gap-12">
           {/* Brand */}
           <div className="space-y-4">
-            <div className="inline-block bg-yellow-500 border-2 border-black dark:border-yellow-500 px-4 py-2 shadow-[4px_4px_0px_theme(colors.black)] dark:shadow-[4px_4px_0px_rgba(234,179,8,0.3)] rotate-[-1deg]">
-              <h3 className="text-2xl font-black text-black dark:text-black">
+            <Link
+              href={getLocalizedHref('/')}
+              onClick={() =>
+                track('link_clicked', {
+                  link_type: 'footer',
+                  link_text: 'logo',
+                  section: 'brand',
+                  destination: getLocalizedHref('/'),
+                })
+              }
+              className="inline-block bg-yellow-500 border-2 border-black dark:border-yellow-500 px-4 py-2 shadow-[4px_4px_0px_theme(colors.black)] dark:shadow-[4px_4px_0px_rgba(234,179,8,0.3)] rotate-[-1deg] hover:shadow-[6px_6px_0px_theme(colors.black)] dark:hover:shadow-[6px_6px_0px_rgba(234,179,8,0.4)] hover:rotate-0 transition-all duration-200 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-yellow-500"
+            >
+              <span className="text-2xl font-black text-black dark:text-black">
                 CLOAKDB
-              </h3>
-            </div>
+              </span>
+            </Link>
             <p className="text-sm font-bold text-gray-700 dark:text-gray-300">
               {dict.tagline}
             </p>
