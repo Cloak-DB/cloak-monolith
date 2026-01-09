@@ -362,7 +362,7 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
             </p>
           </div>
 
-          <div className="relative mb-16">
+          <div className="relative mb-4 sm:mb-16">
             <div className="bg-slate-900 dark:bg-black border-2 border-black dark:border-white shadow-[8px_8px_0px_theme(colors.black)] dark:shadow-[8px_8px_0px_rgba(255,255,255,0.2)]">
               <div className="flex items-center justify-between px-4 py-3 bg-slate-800 dark:bg-gray-900 border-b-2 border-black dark:border-white">
                 <div className="flex items-center gap-2">
@@ -378,7 +378,7 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                 <div className="w-16" />
               </div>
 
-              <div className="flex min-h-[420px] md:min-h-[450px]">
+              <div className="flex flex-col sm:flex-row sm:min-h-[420px] md:min-h-[450px]">
                 <div className="w-44 border-r border-slate-700 p-3 hidden md:block bg-slate-900/50">
                   <div className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-3 px-2">
                     Tables
@@ -442,13 +442,13 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                     <table className="w-full text-sm">
                       <thead>
                         <tr className="border-b border-slate-700 bg-slate-800/50">
-                          <th className="text-left px-3 py-2 text-slate-400 font-medium">
+                          <th className="text-left px-2 sm:px-3 py-2 text-slate-400 font-medium">
                             id
                           </th>
-                          <th className="text-left px-3 py-2 text-slate-400 font-medium">
+                          <th className="text-left px-2 sm:px-3 py-2 text-slate-400 font-medium">
                             email
                           </th>
-                          <th className="text-left px-3 py-2 text-slate-400 font-medium hidden sm:table-cell">
+                          <th className="text-left px-2 sm:px-3 py-2 text-slate-400 font-medium">
                             status
                           </th>
                           <th className="text-left px-3 py-2 text-slate-400 font-medium hidden lg:table-cell">
@@ -468,13 +468,13 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                             }`}
                             style={{ transitionDelay: `${index * 50}ms` }}
                           >
-                            <td className="px-3 py-2 text-purple-400 font-mono">
+                            <td className="px-2 sm:px-3 py-2 text-purple-400 font-mono">
                               {row.id}
                             </td>
-                            <td className="px-3 py-2 text-slate-300">
+                            <td className="px-2 sm:px-3 py-2 text-slate-300 max-w-[120px] sm:max-w-none truncate">
                               {row.email}
                             </td>
-                            <td className="px-3 py-2 hidden sm:table-cell">
+                            <td className="px-2 sm:px-3 py-2">
                               <span
                                 className={`text-xs px-1.5 py-0.5 rounded ${statusClasses[row.status]}`}
                               >
@@ -494,8 +494,8 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                   </div>
                 </div>
 
-                <div className="w-56 sm:w-64 lg:w-72 border-l border-slate-700 bg-slate-900/80 flex flex-col">
-                  <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700">
+                <div className="order-first sm:order-last w-full sm:w-56 md:w-64 lg:w-72 border-t sm:border-t-0 sm:border-l border-slate-700 bg-slate-900/80 flex flex-col">
+                  <div className="flex items-center justify-between px-4 py-2 sm:py-3 border-b border-slate-700">
                     <div className="flex items-center gap-2">
                       <Clock className="w-4 h-4 text-purple-400" />
                       <span className="text-sm font-bold text-white">
@@ -507,7 +507,7 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                     </button>
                   </div>
 
-                  <div className="flex-1 overflow-auto p-2 space-y-2">
+                  <div className="flex-1 overflow-x-auto sm:overflow-x-hidden sm:overflow-y-auto p-2 flex sm:flex-col gap-2 sm:space-y-0">
                     {snapshots.map((snapshot, index) => {
                       const Icon = snapshot.icon;
                       const isActive = snapshot.id === activeSnapshot.id;
@@ -518,7 +518,7 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                           key={snapshot.id}
                           onClick={() => handleRestore(snapshot)}
                           disabled={isRestoring}
-                          className={`group w-full text-left bg-slate-800/50 border rounded p-3 transition-all relative ${
+                          className={`group flex-shrink-0 w-40 sm:w-full text-left bg-slate-800/50 border rounded p-2 sm:p-3 transition-all relative ${
                             isActive
                               ? activeColorClasses[snapshot.color]
                               : 'border-slate-700 hover:border-purple-500/50 cursor-pointer'
@@ -529,38 +529,38 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                           }`}
                         >
                           {showTryIt && (
-                            <span className="absolute -top-3 -right-3 text-xs bg-purple-500 text-white px-3 py-1 rounded-full font-black animate-bounce shadow-[0_0_20px_rgba(168,85,247,0.7)] border-2 border-white">
+                            <span className="absolute -top-2 -right-2 sm:-top-3 sm:-right-3 text-[10px] sm:text-xs bg-purple-500 text-white px-2 sm:px-3 py-0.5 sm:py-1 rounded-full font-black animate-bounce shadow-[0_0_20px_rgba(168,85,247,0.7)] border-2 border-white">
                               Try it!
                             </span>
                           )}
-                          <div className="flex items-start gap-3">
+                          <div className="flex items-start gap-2 sm:gap-3">
                             <div
-                              className={`p-1.5 rounded border ${colorClasses[snapshot.color]}`}
+                              className={`p-1 sm:p-1.5 rounded border ${colorClasses[snapshot.color]}`}
                             >
-                              <Icon className="w-3.5 h-3.5" />
+                              <Icon className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                             </div>
                             <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <span className="text-sm font-medium text-white truncate">
+                              <div className="flex items-center gap-1 sm:gap-2">
+                                <span className="text-xs sm:text-sm font-medium text-white truncate">
                                   {snapshot.name}
                                 </span>
                                 {isActive && (
-                                  <span className="text-[10px] bg-green-500/20 text-green-400 px-1.5 py-0.5 rounded font-bold">
+                                  <span className="text-[8px] sm:text-[10px] bg-green-500/20 text-green-400 px-1 sm:px-1.5 py-0.5 rounded font-bold whitespace-nowrap">
                                     ACTIVE
                                   </span>
                                 )}
                               </div>
-                              <div className="text-xs text-slate-500 truncate">
+                              <div className="text-[10px] sm:text-xs text-slate-500 truncate">
                                 {snapshot.description}
                               </div>
-                              <div className="text-xs text-slate-600 mt-1">
+                              <div className="text-[10px] sm:text-xs text-slate-600 mt-0.5 sm:mt-1">
                                 {snapshot.time}
                               </div>
                             </div>
                           </div>
                           {!isActive && (
-                            <div className="mt-2 w-full flex items-center justify-center gap-1.5 bg-purple-600/20 hover:bg-purple-600 text-purple-400 hover:text-white text-xs font-bold py-1.5 rounded border border-purple-500/30 hover:border-purple-500 transition-all opacity-0 group-hover:opacity-100">
-                              <RotateCcw className="w-3 h-3" />
+                            <div className="mt-1.5 sm:mt-2 w-full flex items-center justify-center gap-1 sm:gap-1.5 bg-purple-600/20 sm:hover:bg-purple-600 text-purple-400 sm:hover:text-white text-[10px] sm:text-xs font-bold py-1 sm:py-1.5 rounded border border-purple-500/30 sm:hover:border-purple-500 transition-all sm:opacity-0 sm:group-hover:opacity-100">
+                              <RotateCcw className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
                               Restore
                             </div>
                           )}
@@ -572,8 +572,9 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
               </div>
             </div>
 
+            {/* Desktop toast - overlaid */}
             <div
-              className={`absolute bottom-4 left-4 right-4 md:left-auto md:right-4 md:w-96 z-30 transition-all duration-300 ${
+              className={`hidden sm:block absolute bottom-4 right-4 w-96 z-30 transition-all duration-300 ${
                 showToast
                   ? 'opacity-100 translate-y-0'
                   : 'opacity-0 translate-y-4 pointer-events-none'
@@ -604,6 +605,42 @@ export function ProblemSolution({ dict }: ProblemSolutionProps) {
                     No magic — just SQL under the hood
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Mobile toast - below the demo */}
+          <div
+            className={`sm:hidden mt-2 transition-all duration-300 ${
+              showToast
+                ? 'opacity-100 max-h-96'
+                : 'opacity-0 max-h-0 overflow-hidden'
+            }`}
+          >
+            <div className="bg-slate-950 border-2 border-green-500 shadow-[4px_4px_0px_theme(colors.green.600)] rounded-lg overflow-hidden">
+              <div className="flex items-center justify-between px-3 py-2 bg-green-500/10 border-b border-green-500/30">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-green-400" />
+                  <span className="text-sm font-bold text-green-400">
+                    Snapshot Restored
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowToast(false)}
+                  className="text-slate-400 hover:text-white"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-3">
+                <pre className="text-xs font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
+                  {toastSql}
+                </pre>
+              </div>
+              <div className="px-3 py-2 bg-slate-900/50 border-t border-slate-800">
+                <p className="text-xs text-slate-500">
+                  No magic — just SQL under the hood
+                </p>
               </div>
             </div>
           </div>
