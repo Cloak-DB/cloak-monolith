@@ -1,5 +1,5 @@
 import type { Config } from 'tailwindcss';
-import baseConfig from '@cloak/tailwind-config';
+import baseConfig from '@cloak-db/tailwind-config';
 
 const config: Config = {
   presets: [baseConfig],

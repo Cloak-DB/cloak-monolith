@@ -1,5 +1,5 @@
 {
-  "name": "@cloak/tailwind-config",
+  "name": "@cloak-db/tailwind-config",
   "version": "0.0.0",
   "private": true,
   "type": "module",

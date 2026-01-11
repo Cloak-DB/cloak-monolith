@@ -2,7 +2,7 @@
 
 import { type ReactNode, useState } from 'react';
 import Link from 'next/link';
-import { Button } from '@cloak/ui/components/button';
+import { Button } from '@cloak-db/ui/components/button';
 import { ArrowRight, Sparkles, Menu, X } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { useAnalytics } from '@/lib/analytics/client';

@@ -1,3 +1,3 @@
-import config from '@cloak/eslint-config/next';
+import config from '@cloak-db/eslint-config/next';
 
 export default config;

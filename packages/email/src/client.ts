@@ -7,7 +7,7 @@ function getResendClient(apiKey?: string): Resend | null {
   const key = apiKey || process.env.RESEND_API_KEY;
 
   if (!key) {
-    console.warn('[@cloak/email] RESEND_API_KEY not configured');
+    console.warn('[@cloak-db/email] RESEND_API_KEY not configured');
     return null;
   }
 
@@ -33,7 +33,9 @@ export class EmailService implements EmailClient {
 
   async send(params: SendEmailParams): Promise<{ id: string } | null> {
     if (!this.client) {
-      console.warn('[@cloak/email] Email client not configured, skipping send');
+      console.warn(
+        '[@cloak-db/email] Email client not configured, skipping send',
+      );
       return null;
     }
 
@@ -51,13 +53,13 @@ export class EmailService implements EmailClient {
       });
 
       if (error) {
-        console.error('[@cloak/email] Failed to send email:', error);
+        console.error('[@cloak-db/email] Failed to send email:', error);
         return null;
       }
 
       return data;
     } catch (error) {
-      console.error('[@cloak/email] Exception sending email:', error);
+      console.error('[@cloak-db/email] Exception sending email:', error);
       return null;
     }
   }

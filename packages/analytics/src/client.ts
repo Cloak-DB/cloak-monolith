@@ -22,7 +22,7 @@ export class ClientAnalytics {
 
   async track(
     event: string,
-    properties: Record<string, unknown> = {}
+    properties: Record<string, unknown> = {},
   ): Promise<void> {
     if (!this.apiKey) return;
 
@@ -45,7 +45,7 @@ export class ClientAnalytics {
         body: JSON.stringify(payload),
       });
     } catch (error) {
-      console.error('[@cloak/analytics] Failed to track event:', error);
+      console.error('[@cloak-db/analytics] Failed to track event:', error);
     }
   }
 
@@ -66,7 +66,7 @@ export class ClientAnalytics {
         body: JSON.stringify(payload),
       });
     } catch (error) {
-      console.error('[@cloak/analytics] Failed to track pageview:', error);
+      console.error('[@cloak-db/analytics] Failed to track pageview:', error);
     }
   }
 
@@ -96,7 +96,7 @@ export class ClientAnalytics {
 export function getClientAnalytics(
   config: AnalyticsConfig,
   apiKey?: string,
-  apiHost?: string
+  apiHost?: string,
 ): ClientAnalytics {
   return new ClientAnalytics({
     ...config,

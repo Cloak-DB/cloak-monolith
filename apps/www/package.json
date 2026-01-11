@@ -10,10 +10,10 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@cloak/analytics": "workspace:*",
-    "@cloak/email": "workspace:*",
-    "@cloak/email-templates": "workspace:*",
-    "@cloak/ui": "workspace:*",
+    "@cloak-db/analytics": "workspace:*",
+    "@cloak-db/email": "workspace:*",
+    "@cloak-db/email-templates": "workspace:*",
+    "@cloak-db/ui": "workspace:*",
     "@react-email/components": "^0.0.25",
     "gray-matter": "^4.0.3",
     "highlight.js": "^11.11.1",
@@ -27,8 +27,8 @@
     "remark-gfm": "^4.0.1"
   },
   "devDependencies": {
-    "@cloak/eslint-config": "workspace:*",
-    "@cloak/tailwind-config": "workspace:*",
+    "@cloak-db/eslint-config": "workspace:*",
+    "@cloak-db/tailwind-config": "workspace:*",
     "@eslint/js": "^9.39.0",
     "@next/eslint-plugin-next": "^16.1.1",
     "@tailwindcss/typography": "^0.5.19",

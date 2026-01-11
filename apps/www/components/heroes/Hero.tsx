@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import Image from 'next/image';
 import { useEffect, useRef, useState } from 'react';
-import { Button } from '@cloak/ui/components/button';
+import { Button } from '@cloak-db/ui/components/button';
 import { ChevronDown, Github } from 'lucide-react';
 import type { Locale } from '@/lib/i18n/config';
 

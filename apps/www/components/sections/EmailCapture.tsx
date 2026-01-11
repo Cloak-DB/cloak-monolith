@@ -1,9 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { Button } from '@cloak/ui/components/button';
-import { Input } from '@cloak/ui/components/input';
-import { Card } from '@cloak/ui/components/card';
+import { Button } from '@cloak-db/ui/components/button';
+import { Input } from '@cloak-db/ui/components/input';
+import { Card } from '@cloak-db/ui/components/card';
 import { ArrowRight, Check } from 'lucide-react';
 import { useAnalytics } from '@/lib/analytics/client';
 

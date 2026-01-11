@@ -1,4 +1,4 @@
-import { getEmailClient } from '@cloak/email';
+import { getEmailClient } from '@cloak-db/email';
 
 let emailClient: ReturnType<typeof getEmailClient> | null = null;
 

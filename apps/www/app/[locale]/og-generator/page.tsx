@@ -1,12 +1,12 @@
 'use client';
 
 import { useState, useRef } from 'react';
-import { Button } from '@cloak/ui/components/button';
-import { Input } from '@cloak/ui/components/input';
-import { Card, CardContent } from '@cloak/ui/components/card';
-import { Badge } from '@cloak/ui/components/badge';
+import { Button } from '@cloak-db/ui/components/button';
+import { Input } from '@cloak-db/ui/components/input';
+import { Card, CardContent } from '@cloak-db/ui/components/card';
+import { Badge } from '@cloak-db/ui/components/badge';
 import { Download, Sparkles, Moon, Sun } from 'lucide-react';
-import { cn } from '@cloak/ui/lib/utils';
+import { cn } from '@cloak-db/ui/lib/utils';
 
 const OG_WIDTH = 1200;
 const OG_HEIGHT = 630;
@@ -15,14 +15,14 @@ export default function OGGeneratorPage() {
   const [fileName, setFileName] = useState('home');
   const [pageNameEN, setPageNameEN] = useState('Cloak DB');
   const [descriptionEN, setDescriptionEN] = useState(
-    'Production-Realistic Database Seeding for Development'
+    'Production-Realistic Database Seeding for Development',
   );
   const [badge1EN, setBadge1EN] = useState('Open Source');
   const [badge2EN, setBadge2EN] = useState('Local-First');
 
   const [pageNameFR, setPageNameFR] = useState('Cloak DB');
   const [descriptionFR, setDescriptionFR] = useState(
-    'Population Réaliste de Base de Données pour le Développement'
+    'Population Réaliste de Base de Données pour le Développement',
   );
   const [badge1FR, setBadge1FR] = useState('Open Source');
   const [badge2FR, setBadge2FR] = useState("Local d'abord");
@@ -34,7 +34,7 @@ export default function OGGeneratorPage() {
     pageName: string,
     description: string,
     badge1: string,
-    badge2: string
+    badge2: string,
   ): Promise<string> => {
     if (!canvasRef.current) throw new Error('Canvas ref not available');
 
@@ -86,7 +86,7 @@ export default function OGGeneratorPage() {
         pageNameEN,
         descriptionEN,
         badge1EN,
-        badge2EN
+        badge2EN,
       );
       const enLink = document.createElement('a');
       enLink.download = `og-${sanitizedFileName}-en.png`;
@@ -99,7 +99,7 @@ export default function OGGeneratorPage() {
         pageNameFR,
         descriptionFR,
         badge1FR,
-        badge2FR
+        badge2FR,
       );
       const frLink = document.createElement('a');
       frLink.download = `og-${sanitizedFileName}-fr.png`;
@@ -198,7 +198,7 @@ export default function OGGeneratorPage() {
                         'transition-all duration-100 ease-out',
                         'border-black shadow-offset focus-visible:shadow-[3px_3px_0px_theme(colors.black)] hover:shadow-[3px_3px_0px_theme(colors.black)] dark:shadow-none dark:border-white',
                         'focus-visible:translate-x-[1px] focus-visible:translate-y-[1px] hover:translate-x-[1px] hover:translate-y-[1px] dark:focus-visible:translate-x-0 dark:focus-visible:translate-y-0 dark:hover:translate-x-0 dark:hover:translate-y-0',
-                        'resize-none'
+                        'resize-none',
                       )}
                     />
                   </div>
@@ -279,7 +279,7 @@ export default function OGGeneratorPage() {
                         'transition-all duration-100 ease-out',
                         'border-black shadow-offset focus-visible:shadow-[3px_3px_0px_theme(colors.black)] hover:shadow-[3px_3px_0px_theme(colors.black)] dark:shadow-none dark:border-white',
                         'focus-visible:translate-x-[1px] focus-visible:translate-y-[1px] hover:translate-x-[1px] hover:translate-y-[1px] dark:focus-visible:translate-x-0 dark:focus-visible:translate-y-0 dark:hover:translate-x-0 dark:hover:translate-y-0',
-                        'resize-none'
+                        'resize-none',
                       )}
                     />
                   </div>
@@ -394,7 +394,7 @@ export default function OGGeneratorPage() {
                   'relative overflow-hidden',
                   isDarkMode
                     ? 'bg-gradient-to-br from-gray-950 via-black to-gray-900'
-                    : 'bg-gradient-to-br from-slate-50 via-white to-slate-100'
+                    : 'bg-gradient-to-br from-slate-50 via-white to-slate-100',
                 )}
               >
                 <div
@@ -462,7 +462,7 @@ export default function OGGeneratorPage() {
                       variant="purple"
                       className={cn(
                         'px-6 py-3 text-2xl font-black rounded-none shadow-[4px_4px_0px_theme(colors.black)] whitespace-nowrap',
-                        isDarkMode && 'shadow-none'
+                        isDarkMode && 'shadow-none',
                       )}
                     >
                       CLOAK&nbsp;DB
@@ -510,7 +510,7 @@ export default function OGGeneratorPage() {
                       variant="blue"
                       className={cn(
                         'px-6 py-3 text-xl font-bold rounded-none shadow-[4px_4px_0px_theme(colors.black)] inline-flex items-center justify-center',
-                        isDarkMode && 'shadow-none'
+                        isDarkMode && 'shadow-none',
                       )}
                     >
                       <span data-badge-1 style={{ display: 'inline-block' }}>
@@ -521,7 +521,7 @@ export default function OGGeneratorPage() {
                       variant="yellow"
                       className={cn(
                         'px-6 py-3 text-xl font-bold rounded-none shadow-[4px_4px_0px_theme(colors.black)] inline-flex items-center justify-center',
-                        isDarkMode && 'shadow-none'
+                        isDarkMode && 'shadow-none',
                       )}
                     >
                       <span data-badge-2 style={{ display: 'inline-block' }}>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Button } from '@cloak/ui/components/button';
+import { Button } from '@cloak-db/ui/components/button';
 import { X, Cookie, Settings } from 'lucide-react';
 import Link from 'next/link';
 

@@ -8,7 +8,7 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   experimental: {
-    optimizePackageImports: ['@cloak/ui'],
+    optimizePackageImports: ['@cloak-db/ui'],
   },
 };
 

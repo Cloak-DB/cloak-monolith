@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getServerAnalytics } from '@cloak/analytics/server';
+import { getServerAnalytics } from '@cloak-db/analytics/server';
 
 const analytics = getServerAnalytics({
   appName: 'marketing-site',
@@ -14,7 +14,7 @@ export async function POST(request: NextRequest) {
     if (!distinctId || !path) {
       return NextResponse.json(
         { error: 'Missing distinctId or path' },
-        { status: 400 }
+        { status: 400 },
       );
     }
 
@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     console.error('[Analytics] Failed to track pageview:', error);
     return NextResponse.json(
       { error: 'Failed to track pageview' },
-      { status: 500 }
+      { status: 500 },
     );
   }
 }

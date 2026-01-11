@@ -1,0 +1,41 @@
+{
+  "name": "@cloak-db/app",
+  "version": "0.1.0",
+  "description": "Run Cloak DB locally with Docker",
+  "type": "module",
+  "bin": {
+    "cloak-app": "./dist/cli.js"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsup src/cli.ts --format esm --dts",
+    "dev": "tsup src/cli.ts --format esm --watch",
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
+  },
+  "keywords": [
+    "cloak-db",
+    "database",
+    "postgres",
+    "docker",
+    "cli"
+  ],
+  "author": "Cloak DB",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cloak-db/cloak-db.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://cloak-db.com",
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.2"
+  }
+}

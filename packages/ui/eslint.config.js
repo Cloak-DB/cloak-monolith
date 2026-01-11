@@ -1,3 +1,3 @@
-import config from '@cloak/eslint-config/library';
+import config from '@cloak-db/eslint-config/library';
 
 export default config;

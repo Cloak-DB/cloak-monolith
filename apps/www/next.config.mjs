@@ -7,7 +7,7 @@ const nextConfig = {
     ignoreBuildErrors: false,
   },
   experimental: {
-    optimizePackageImports: ['lucide-react', '@cloak/ui'],
+    optimizePackageImports: ['lucide-react', '@cloak-db/ui'],
   },
   images: {
     formats: ['image/avif', 'image/webp'],

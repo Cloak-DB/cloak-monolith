@@ -14,7 +14,7 @@
     "docker:dev": "docker build -t cloak-app -f apps/app/Dockerfile ../.. && docker run -p 3000:3000 cloak-app"
   },
   "dependencies": {
-    "@cloak/ui": "workspace:*",
+    "@cloak-db/ui": "workspace:*",
     "@tanstack/react-query": "^5.64.1",
     "@trpc/client": "^11.1.2",
     "@trpc/react-query": "^11.1.2",
@@ -25,8 +25,8 @@
     "zod": "^3.24.1"
   },
   "devDependencies": {
-    "@cloak/eslint-config": "workspace:*",
-    "@cloak/tailwind-config": "workspace:*",
+    "@cloak-db/eslint-config": "workspace:*",
+    "@cloak-db/tailwind-config": "workspace:*",
     "@types/node": "^22.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",

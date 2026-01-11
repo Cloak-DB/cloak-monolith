@@ -1,6 +1,6 @@
 import Link from 'next/link';
-import { Button } from '@cloak/ui/components/button';
-import { Badge } from '@cloak/ui/components/badge';
+import { Button } from '@cloak-db/ui/components/button';
+import { Badge } from '@cloak-db/ui/components/badge';
 import { HealthCheck } from './components/HealthCheck';
 
 export default function HomePage() {

@@ -1,21 +1,21 @@
 'use client';
 
-import { Button } from '@cloak/ui/components/button';
+import { Button } from '@cloak-db/ui/components/button';
 import {
   Card,
   CardHeader,
   CardTitle,
   CardDescription,
   CardContent,
-} from '@cloak/ui/components/card';
-import { Badge } from '@cloak/ui/components/badge';
+} from '@cloak-db/ui/components/card';
+import { Badge } from '@cloak-db/ui/components/badge';
 import {
   Alert,
   AlertTitle,
   AlertDescription,
-} from '@cloak/ui/components/alert';
-import { Input } from '@cloak/ui/components/input';
-import { Select } from '@cloak/ui/components/select';
+} from '@cloak-db/ui/components/alert';
+import { Input } from '@cloak-db/ui/components/input';
+import { Select } from '@cloak-db/ui/components/select';
 import {
   Modal,
   ModalHeader,
@@ -23,9 +23,9 @@ import {
   ModalDescription,
   ModalContent,
   ModalFooter,
-} from '@cloak/ui/components/modal';
-import { ToastProvider, useToast } from '@cloak/ui/components/toast';
-import { Banner } from '@cloak/ui/components/banner';
+} from '@cloak-db/ui/components/modal';
+import { ToastProvider, useToast } from '@cloak-db/ui/components/toast';
+import { Banner } from '@cloak-db/ui/components/banner';
 import { useState } from 'react';
 
 function DesignSystemContent() {
@@ -93,7 +93,7 @@ function DesignSystemContent() {
 
       {/* Buttons */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-4">Buttons (from @cloak/ui)</h2>
+        <h2 className="text-2xl font-bold mb-4">Buttons (from @cloak-db/ui)</h2>
         <div className="space-y-6">
           {/* Variants */}
           <div>
@@ -142,7 +142,7 @@ function DesignSystemContent() {
 
       {/* Cards */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-4">Cards (from @cloak/ui)</h2>
+        <h2 className="text-2xl font-bold mb-4">Cards (from @cloak-db/ui)</h2>
         <div className="space-y-6">
           {/* Default Cards */}
           <div>
@@ -204,7 +204,7 @@ function DesignSystemContent() {
 
       {/* Badges */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-4">Badges (from @cloak/ui)</h2>
+        <h2 className="text-2xl font-bold mb-4">Badges (from @cloak-db/ui)</h2>
         <div className="flex flex-wrap gap-3">
           <Badge>Default</Badge>
           <Badge variant="yellow">Yellow</Badge>
@@ -217,7 +217,7 @@ function DesignSystemContent() {
 
       {/* Banners */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-4">Banners (from @cloak/ui)</h2>
+        <h2 className="text-2xl font-bold mb-4">Banners (from @cloak-db/ui)</h2>
         <div className="space-y-6">
           {/* Variants */}
           <div>
@@ -243,7 +243,7 @@ function DesignSystemContent() {
 
       {/* Alerts */}
       <section className="mb-12">
-        <h2 className="text-2xl font-bold mb-4">Alerts (from @cloak/ui)</h2>
+        <h2 className="text-2xl font-bold mb-4">Alerts (from @cloak-db/ui)</h2>
         <div className="space-y-4">
           <Alert variant="warning">
             <AlertTitle>Warning</AlertTitle>
@@ -267,7 +267,7 @@ function DesignSystemContent() {
       {/* Form Elements */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold mb-4">
-          Form Elements (from @cloak/ui)
+          Form Elements (from @cloak-db/ui)
         </h2>
         <div className="space-y-4 max-w-md">
           <div>
@@ -310,7 +310,7 @@ function DesignSystemContent() {
       {/* Modal & Toast */}
       <section className="mb-12">
         <h2 className="text-2xl font-bold mb-4">
-          Modal & Toast (from @cloak/ui)
+          Modal & Toast (from @cloak-db/ui)
         </h2>
         <div className="flex flex-wrap gap-4">
           <Button onClick={() => setIsModalOpen(true)}>Open Modal</Button>
@@ -338,7 +338,8 @@ function DesignSystemContent() {
           <ModalHeader>
             <ModalTitle>Modal Title</ModalTitle>
             <ModalDescription>
-              This is a modal from the @cloak/ui package with dark mode support.
+              This is a modal from the @cloak-db/ui package with dark mode
+              support.
             </ModalDescription>
           </ModalHeader>
           <ModalContent>

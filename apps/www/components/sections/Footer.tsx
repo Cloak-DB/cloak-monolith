@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { ExternalLink, ArrowRight } from 'lucide-react';
-import { Button } from '@cloak/ui/components/button';
+import { Button } from '@cloak-db/ui/components/button';
 import { useAnalytics } from '@/lib/analytics/client';
 import type { Locale } from '@/lib/i18n/config';
 

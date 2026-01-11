@@ -7,7 +7,7 @@ import { ThemeSwitcher } from './ThemeSwitcher';
 import type { Locale } from '@/lib/i18n/config';
 import { useState, useEffect } from 'react';
 import { usePathname } from 'next/navigation';
-import { cn } from '@cloak/ui/lib/utils';
+import { cn } from '@cloak-db/ui/lib/utils';
 
 // =============================================================================
 // TYPES

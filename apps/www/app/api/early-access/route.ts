@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { render } from '@react-email/components';
-import { EarlyAccessRequestEmail } from '@cloak/email-templates/early-access-request';
-import { EarlyAccessWelcomeEmail } from '@cloak/email-templates/early-access-welcome';
+import { EarlyAccessRequestEmail } from '@cloak-db/email-templates/early-access-request';
+import { EarlyAccessWelcomeEmail } from '@cloak-db/email-templates/early-access-welcome';
 import { getEmail } from '@/lib/email/client';
-import { getServerAnalytics } from '@cloak/analytics/server';
+import { getServerAnalytics } from '@cloak-db/analytics/server';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { isValidLocale, defaultLocale, type Locale } from '@/lib/i18n/config';
 

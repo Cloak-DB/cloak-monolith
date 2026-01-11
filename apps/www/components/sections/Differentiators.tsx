@@ -1,7 +1,7 @@
 'use client';
 
 import { Undo2, Search, Camera } from 'lucide-react';
-import { cn } from '@cloak/ui/lib/utils';
+import { cn } from '@cloak-db/ui/lib/utils';
 
 type DifferentiatorsProps = {
   dict: {
