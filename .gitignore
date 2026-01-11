@@ -53,3 +53,13 @@ temp/
 **/cdk.out/
 cdk.context.json
 **/cdk.context.json
+
+# ----------------------------------------------------
+# ----------- Experimental / local folders -----------
+# ----------------------------------------------------
+
+# Specs (local planning docs)
+specs/
+
+# Tasks (local task tracking)
+tasks/
