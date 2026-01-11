@@ -8,9 +8,7 @@ import { Navbar } from '@/components/Navbar';
 import { useAnalytics } from '@/lib/analytics/client';
 import type { Locale } from '@/lib/i18n/config';
 import type { DocContent } from '@/lib/mdx';
-
-// Canonical domain - no www, with hyphen
-const CANONICAL_DOMAIN = 'https://cloak-db.com';
+import { CANONICAL_DOMAIN } from '@/lib/site';
 
 type DocsPageClientProps = {
   locale: Locale;

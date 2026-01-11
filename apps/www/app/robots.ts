@@ -1,7 +1,5 @@
 import { MetadataRoute } from 'next';
-
-// Canonical domain - no www, with hyphen
-const CANONICAL_DOMAIN = 'https://cloak-db.com';
+import { CANONICAL_DOMAIN } from '@/lib/site';
 
 export default function robots(): MetadataRoute.Robots {
   return {

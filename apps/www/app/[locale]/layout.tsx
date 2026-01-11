@@ -5,9 +5,7 @@ import localFont from 'next/font/local';
 import { PageViewTracker } from '@/lib/analytics/PageViewTracker';
 import { CookieConsent } from '@/components/cookie-consent/CookieConsent';
 import { GoogleAnalytics } from '@/lib/analytics/GoogleAnalytics';
-
-// Canonical domain - no www, with hyphen
-const CANONICAL_DOMAIN = 'https://cloak-db.com';
+import { CANONICAL_DOMAIN } from '@/lib/site';
 
 const epilogue = localFont({
   src: '../../public/fonts/Epilogue/Epilogue-VariableFont_wght.ttf',

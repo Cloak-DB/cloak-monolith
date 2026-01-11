@@ -3,9 +3,7 @@ import type { Locale } from '@/lib/i18n/config';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { Footer } from '@/components/sections/Footer';
 import { HomeClient } from './client';
-
-// Canonical domain - no www, with hyphen
-const CANONICAL_DOMAIN = 'https://cloak-db.com';
+import { CANONICAL_DOMAIN } from '@/lib/site';
 
 const metadataByLocale = {
   en: {

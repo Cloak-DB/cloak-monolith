@@ -5,9 +5,7 @@ import { getDocBySlug, getDocSlugs, getAllDocs } from '@/lib/mdx';
 import { getDictionary } from '@/lib/i18n/dictionaries';
 import { DocsPageClient } from './DocsPageClient';
 import { DocsContent } from './DocsContent';
-
-// Canonical domain - no www, with hyphen
-const CANONICAL_DOMAIN = 'https://cloak-db.com';
+import { CANONICAL_DOMAIN } from '@/lib/site';
 
 export async function generateStaticParams() {
   const locales = ['en', 'fr'] as const;
