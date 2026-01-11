@@ -27,7 +27,7 @@ export default function HomePage() {
         {/* Description */}
         <p className="text-lg md:text-xl text-slate-700 dark:text-gray-400 max-w-lg mx-auto">
           You're early! This app is not functional yet. We're actively building
-          the core features. Check back soon.
+          the core features. Stay tuned for updates.
         </p>
 
         {/* CTA */}

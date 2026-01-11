@@ -1,4 +1,4 @@
-name: Docker Publish
+name: Release
 
 on:
   push:
@@ -10,7 +10,7 @@ env:
   IMAGE_NAME: cloak-db/app
 
 jobs:
-  build-and-push:
+  docker-publish:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -63,6 +63,62 @@ jobs:
             "embeds": [
               {
                 "title": "Docker Publish Failed",
+                "color": 15548997,
+                "fields": [
+                  {"name": "Repository", "value": "${GITHUB_REPOSITORY}", "inline": true},
+                  {"name": "Tag", "value": "${GITHUB_REF_NAME}", "inline": true},
+                  {"name": "Actor", "value": "${GITHUB_ACTOR}", "inline": true},
+                  {"name": "Workflow", "value": "${{ github.workflow }} #${{ github.run_number }}", "inline": true},
+                  {"name": "Commit", "value": "${SHORT_SHA}", "inline": true},
+                  {"name": "Run", "value": "${RUN_URL}", "inline": false}
+                ],
+                "timestamp": "${TIMESTAMP}"
+              }
+            ]
+          }
+          EOF
+          curl -s -H "Content-Type: application/json" -d @payload.json "$DISCORD_WEBHOOK_URL"
+
+  npm-publish:
+    runs-on: ubuntu-latest
+    needs: docker-publish
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: "10.18.3"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'pnpm'
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build CLI
+        run: pnpm --filter=@cloak-db/app build
+
+      - name: Publish to npm
+        run: pnpm --filter=@cloak-db/app publish --access public --no-git-checks
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+      - name: Notify Discord on failure
+        if: ${{ failure() }}
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          RUN_URL="${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+          cat > payload.json <<EOF
+          {
+            "embeds": [
+              {
+                "title": "npm Publish Failed",
                 "color": 15548997,
                 "fields": [
                   {"name": "Repository", "value": "${GITHUB_REPOSITORY}", "inline": true},
