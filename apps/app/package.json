@@ -8,7 +8,10 @@
     "build": "next build",
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "docker:build": "docker build -t cloak-app -f apps/app/Dockerfile ../..",
+    "docker:run": "docker run -p 3000:3000 cloak-app",
+    "docker:dev": "docker build -t cloak-app -f apps/app/Dockerfile ../.. && docker run -p 3000:3000 cloak-app"
   },
   "dependencies": {
     "@cloak/ui": "workspace:*",

@@ -1,0 +1,61 @@
+# Dependencies (will be installed fresh in container)
+node_modules
+**/node_modules
+
+# Build outputs
+.next
+**/.next
+.turbo
+**/.turbo
+dist
+**/dist
+
+# Git
+.git
+.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# Test & Coverage
+coverage
+**/.coverage
+.nyc_output
+
+# Environment files (secrets)
+.env
+.env.*
+!.env.example
+
+# Documentation & misc
+*.md
+!README.md
+LICENSE
+docs
+
+# CI/CD
+.github
+
+# Docker
+Dockerfile*
+docker-compose*
+.dockerignore
+
+# Tasks & specs (dev only)
+tasks
+specs
+
+# Infra (dev only)
+infra
