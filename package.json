@@ -8,7 +8,7 @@
     "format": "pnpm prettier . --write",
     "build": "pnpm -r build",
     "typecheck": "pnpm -r typecheck",
-    "dev": "dotenv -e .env -- turbo dev --filter=@apps/www",
+    "dev": "dotenv -e .env -- turbo dev --filter=@apps/www --filter=@apps/app",
     "db:start": "docker compose -f infra/dev/db/docker-compose.yml up -d",
     "db:stop": "docker compose -f infra/dev/db/docker-compose.yml down",
     "db:reset": "docker compose -f infra/dev/db/docker-compose.yml down -v && docker volume rm db_local_data >/dev/null 2>&1 || true && docker compose -f infra/dev/db/docker-compose.yml up -d",

@@ -1,0 +1,42 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .shadow-offset {
+    box-shadow: 6px 6px 0 theme('colors.black');
+  }
+
+  .dark .shadow-offset {
+    box-shadow: 6px 6px 0 theme('colors.white');
+  }
+}
+
+@layer base {
+  * {
+    border-color: theme('borderColor.DEFAULT', currentColor);
+  }
+
+  html,
+  body {
+    @apply min-h-screen;
+  }
+
+  body {
+    @apply bg-white dark:bg-gray-950 text-black dark:text-white antialiased font-sans;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display font-bold;
+  }
+
+  code,
+  pre {
+    @apply font-mono;
+  }
+}
