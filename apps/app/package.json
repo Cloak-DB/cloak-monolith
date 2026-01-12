@@ -14,6 +14,7 @@
     "docker:dev": "docker build -t cloak-app -f apps/app/Dockerfile ../.. && docker run -p 3000:3000 cloak-app"
   },
   "dependencies": {
+    "@cloak-db/db-core": "workspace:*",
     "@cloak-db/ui": "workspace:*",
     "@tanstack/react-query": "^5.64.1",
     "@trpc/client": "^11.1.2",

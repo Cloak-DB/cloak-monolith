@@ -1,5 +1,7 @@
 import { z } from 'zod';
 import { router, publicProcedure } from '../trpc';
+import { connectionRouter } from './connection';
+import { configRouter } from './config';
 
 export const appRouter = router({
   health: publicProcedure.query(() => {
@@ -14,6 +16,9 @@ export const appRouter = router({
       greeting: `Hello ${input ?? 'World'}!`,
     };
   }),
+
+  connection: connectionRouter,
+  config: configRouter,
 });
 
 // Export type router type signature for client usage

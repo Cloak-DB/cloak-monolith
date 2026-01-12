@@ -10,6 +10,7 @@
     "./components/label": "./components/label.tsx",
     "./components/select": "./components/select.tsx",
     "./components/card": "./components/card.tsx",
+    "./components/checkbox": "./components/checkbox.tsx",
     "./components/badge": "./components/badge.tsx",
     "./components/modal": "./components/modal.tsx",
     "./components/alert": "./components/alert.tsx",

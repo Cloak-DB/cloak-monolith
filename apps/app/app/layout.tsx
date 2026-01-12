@@ -3,6 +3,7 @@ import localFont from 'next/font/local';
 import './globals.css';
 import { TRPCProvider } from '@/lib/trpc/provider';
 import { ThemeProvider } from '@/lib/theme/provider';
+import { ToastProvider } from '@cloak-db/ui/components/toast';
 
 const epilogue = localFont({
   src: '../public/fonts/Epilogue/Epilogue-VariableFont_wght.ttf',
@@ -81,7 +82,9 @@ export default function RootLayout({
       </head>
       <body className="font-sans overflow-x-hidden">
         <ThemeProvider>
-          <TRPCProvider>{children}</TRPCProvider>
+          <ToastProvider>
+            <TRPCProvider>{children}</TRPCProvider>
+          </ToastProvider>
         </ThemeProvider>
       </body>
     </html>
