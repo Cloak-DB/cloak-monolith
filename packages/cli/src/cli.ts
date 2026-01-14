@@ -1,14 +1,18 @@
 #!/usr/bin/env node
 
 import { spawn, execSync } from 'node:child_process';
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 
 const IMAGE_NAME = 'ghcr.io/cloak-db/app';
 const DEFAULT_PORT = 3000;
+const CLI_VERSION = '0.2.2';
 
 interface CliOptions {
   port: number;
-  version: string;
+  tag: string;
+  version: boolean;
   help: boolean;
 }
 
@@ -20,13 +24,14 @@ Usage: cloak-app [options]
 
 Options:
   -p, --port <port>     Port to run on (default: ${DEFAULT_PORT})
-  -v, --version <tag>   Docker image version/tag (default: latest)
+  -t, --tag <tag>       Docker image tag (default: latest)
+  -v, --version         Show CLI version
   -h, --help            Show this help message
 
 Examples:
   cloak-app                    # Run on port ${DEFAULT_PORT}
   cloak-app --port 8080        # Run on port 8080
-  cloak-app --version v0.2.0   # Run specific version
+  cloak-app --tag v0.2.0       # Run specific version
 
 Requirements:
   Docker must be installed and running.
@@ -39,7 +44,8 @@ function parseCliArgs(): CliOptions {
     const { values } = parseArgs({
       options: {
         port: { type: 'string', short: 'p', default: String(DEFAULT_PORT) },
-        version: { type: 'string', short: 'v', default: 'latest' },
+        tag: { type: 'string', short: 't', default: 'latest' },
+        version: { type: 'boolean', short: 'v', default: false },
         help: { type: 'boolean', short: 'h', default: false },
       },
       allowPositionals: false,
@@ -47,7 +53,8 @@ function parseCliArgs(): CliOptions {
 
     return {
       port: parseInt(values.port as string, 10),
-      version: values.version as string,
+      tag: values.tag as string,
+      version: values.version as boolean,
       help: values.help as boolean,
     };
   } catch {
@@ -75,8 +82,12 @@ function checkDockerRunning(): boolean {
 }
 
 function runContainer(options: CliOptions): void {
-  const image = `${IMAGE_NAME}:${options.version}`;
+  const image = `${IMAGE_NAME}:${options.tag}`;
   const containerName = `cloak-app-${Date.now()}`;
+
+  // Mount host config directory to container for persistent connections
+  const hostConfigDir = join(homedir(), '.config', 'cloak-db');
+  const containerConfigDir = '/home/nextjs/.config/cloak-db';
 
   console.log(`\n🚀 Starting Cloak DB on port ${options.port}...`);
   console.log(`   Image: ${image}\n`);
@@ -92,6 +103,8 @@ function runContainer(options: CliOptions): void {
       containerName,
       '-p',
       `${options.port}:3000`,
+      '-v',
+      `${hostConfigDir}:${containerConfigDir}`,
       image,
     ],
     { stdio: 'inherit' },
@@ -122,6 +135,11 @@ function runContainer(options: CliOptions): void {
 
 function main(): void {
   const options = parseCliArgs();
+
+  if (options.version) {
+    console.log(CLI_VERSION);
+    process.exit(0);
+  }
 
   if (options.help) {
     printHelp();

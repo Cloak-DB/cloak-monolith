@@ -26,12 +26,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/cloak-db/cloak-db.git",
+    "url": "https://github.com/Cloak-DB/cloak-monolith.git",
     "directory": "packages/cli"
   },
-  "homepage": "https://cloak-db.com",
+  "homepage": "https://www.cloak-db.com",
   "engines": {
-    "node": ">=18"
+    "node": ">=22"
   },
   "devDependencies": {
     "@types/node": "^22.0.0",

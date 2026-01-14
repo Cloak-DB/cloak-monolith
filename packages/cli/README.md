@@ -10,17 +10,17 @@
   <a href="https://www.npmjs.com/package/@cloak-db/app">
     <img src="https://img.shields.io/npm/v/@cloak-db/app.svg" alt="npm version">
   </a>
-  <a href="https://github.com/cloak-db/cloak-db/blob/main/LICENSE">
+  <a href="https://github.com/Cloak-DB/cloak-monolith/blob/main/LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License">
   </a>
-  <a href="https://cloak-db.com">
+  <a href="https://www.cloak-db.com">
     <img src="https://img.shields.io/badge/website-cloak--db.com-blue" alt="Website">
   </a>
 </p>
 
 ---
 
-[Cloak DB](https://cloak-db.com) is an open-source, local-first database studio built for development. It helps you iterate faster with features like database snapshots, resource inspection, and data anonymization.
+[Cloak DB](https://www.cloak-db.com) is an open-source, local-first database studio built for development. It helps you iterate faster with features like database snapshots, resource inspection, and data anonymization.
 
 ## Requirements
 
@@ -39,7 +39,8 @@ This pulls and runs the Cloak DB Docker image, making it available at [http://lo
 | Flag | Description | Default |
 |------|-------------|---------|
 | `-p, --port <port>` | Port to run on | `3000` |
-| `-v, --version <tag>` | Docker image version | `latest` |
+| `-t, --tag <tag>` | Docker image tag | `latest` |
+| `-v, --version` | Show CLI version | |
 | `-h, --help` | Show help | |
 
 ### Examples
@@ -52,15 +53,15 @@ npx @cloak-db/app
 npx @cloak-db/app --port 8080
 
 # Run specific version
-npx @cloak-db/app --version 0.1.2
+npx @cloak-db/app --tag 0.1.2
 ```
 
 ## Links
 
-- [Website](https://cloak-db.com)
-- [Documentation](https://cloak-db.com/docs)
-- [GitHub](https://github.com/cloak-db/cloak-db)
-- [Report Issues](https://github.com/cloak-db/cloak-db/issues)
+- [Website](https://www.cloak-db.com)
+- [Documentation](https://www.cloak-db.com/docs)
+- [GitHub](https://github.com/Cloak-DB/cloak-monolith)
+- [Report Issues](https://github.com/Cloak-DB/cloak-monolith/issues)
 
 ## License
 
