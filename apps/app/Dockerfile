@@ -11,6 +11,7 @@ COPY apps/app/package.json ./apps/app/
 COPY packages/ui/package.json ./packages/ui/
 COPY packages/tailwind-config/package.json ./packages/tailwind-config/
 COPY packages/eslint-config/package.json ./packages/eslint-config/
+COPY packages/db-core/package.json ./packages/db-core/
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
@@ -26,6 +27,7 @@ COPY --from=deps /app/apps/app/node_modules ./apps/app/node_modules
 COPY --from=deps /app/packages/ui/node_modules ./packages/ui/node_modules
 COPY --from=deps /app/packages/tailwind-config/node_modules ./packages/tailwind-config/node_modules
 COPY --from=deps /app/packages/eslint-config/node_modules ./packages/eslint-config/node_modules
+COPY --from=deps /app/packages/db-core/node_modules ./packages/db-core/node_modules
 
 # Copy source files
 COPY . .
