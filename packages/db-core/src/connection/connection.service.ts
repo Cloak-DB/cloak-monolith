@@ -15,6 +15,21 @@ import type {
 } from './connection.types';
 
 /**
+ * Transform connection string for Docker environment.
+ * When running in Docker, localhost/127.0.0.1 needs to be replaced with
+ * host.docker.internal to reach databases on the host machine.
+ */
+function transformConnectionStringForDocker(connectionString: string): string {
+  if (process.env.CLOAK_RUNNING_IN_DOCKER !== 'true') {
+    return connectionString;
+  }
+
+  return connectionString
+    .replace(/@localhost([:/])/, '@host.docker.internal$1')
+    .replace(/@127\.0\.0\.1([:/])/, '@host.docker.internal$1');
+}
+
+/**
  * Test a database connection without persisting it.
  * Validates the connection string and attempts a brief connection.
  *
@@ -36,8 +51,10 @@ export async function testConnection(
   // Attempt to connect
   let testPool: Pool | null = null;
   try {
+    const transformedConnectionString =
+      transformConnectionStringForDocker(connectionString);
     testPool = new Pool({
-      connectionString,
+      connectionString: transformedConnectionString,
       max: 1,
       connectionTimeoutMillis: 10000, // 10 second timeout for test
     });
@@ -96,8 +113,10 @@ export async function connect(
   // Create the pool
   let pool: Pool | null = null;
   try {
+    const transformedConnectionString =
+      transformConnectionStringForDocker(connectionString);
     pool = new Pool({
-      connectionString,
+      connectionString: transformedConnectionString,
       max: 10, // Maximum connections in pool
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,

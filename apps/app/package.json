@@ -1,6 +1,6 @@
 {
   "name": "@apps/app",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,9 +9,9 @@
     "start": "next start",
     "lint": "eslint . --max-warnings 0",
     "typecheck": "tsc --noEmit",
-    "docker:build": "docker build -t cloak-app -f apps/app/Dockerfile ../..",
-    "docker:run": "docker run -p 3000:3000 cloak-app",
-    "docker:dev": "docker build -t cloak-app -f apps/app/Dockerfile ../.. && docker run -p 3000:3000 cloak-app"
+    "docker:build": "docker build -t cloak-app -f Dockerfile ../..",
+    "docker:run": "docker run -p 3000:3000 --add-host=host.docker.internal:host-gateway cloak-app",
+    "docker:dev": "pnpm docker:build && pnpm docker:run"
   },
   "dependencies": {
     "@cloak-db/db-core": "workspace:*",

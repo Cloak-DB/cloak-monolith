@@ -7,7 +7,7 @@ import { parseArgs } from 'node:util';
 
 const IMAGE_NAME = 'ghcr.io/cloak-db/app';
 const DEFAULT_PORT = 3000;
-const CLI_VERSION = '0.2.3';
+const CLI_VERSION = '0.2.4';
 
 interface CliOptions {
   port: number;
@@ -105,6 +105,7 @@ function runContainer(options: CliOptions): void {
       `${options.port}:3000`,
       '-v',
       `${hostConfigDir}:${containerConfigDir}`,
+      '--add-host=host.docker.internal:host-gateway',
       image,
     ],
     { stdio: 'inherit' },
