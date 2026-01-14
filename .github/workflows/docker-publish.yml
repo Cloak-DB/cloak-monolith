@@ -92,7 +92,10 @@ jobs:
 
       - name: Verify Docker image is available
         run: |
-          IMAGE="ghcr.io/cloak-db/app:${{ github.ref_name }}"
+          # Strip 'v' prefix from tag (v0.2.2 -> 0.2.2) to match Docker semver tag
+          VERSION="${{ github.ref_name }}"
+          VERSION="${VERSION#v}"
+          IMAGE="ghcr.io/cloak-db/app:${VERSION}"
           echo "Verifying image: $IMAGE"
 
           # Retry up to 5 times with 30s delay

@@ -7,7 +7,7 @@ import { parseArgs } from 'node:util';
 
 const IMAGE_NAME = 'ghcr.io/cloak-db/app';
 const DEFAULT_PORT = 3000;
-const CLI_VERSION = '0.2.2';
+const CLI_VERSION = '0.2.3';
 
 interface CliOptions {
   port: number;
