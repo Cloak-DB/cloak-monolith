@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/cloak-db/cloak-db/main/logo.png" alt="Cloak DB Logo" width="120">
+  <img src="https://raw.githubusercontent.com/Cloak-DB/cloak-monolith/refs/heads/main/logo.png" alt="Cloak DB Logo" width="120">
 </p>
 
 <h1 align="center">@cloak-db/app</h1>
