@@ -41,8 +41,23 @@ export const ErrorCodes = {
   ALREADY_CONNECTED: 'ALREADY_CONNECTED',
   NOT_CONNECTED: 'NOT_CONNECTED',
 
+  // Query errors
+  QUERY_ERROR: 'QUERY_ERROR',
+
   // Fallback
   UNKNOWN_ERROR: 'UNKNOWN_ERROR',
 } as const;
 
 export type ErrorCode = (typeof ErrorCodes)[keyof typeof ErrorCodes];
+
+/**
+ * Create a standardized DbError
+ */
+export function createError(
+  code: ErrorCode,
+  message: string,
+  details?: string,
+  suggestion?: string,
+): DbError {
+  return { code, message, details, suggestion };
+}

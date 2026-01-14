@@ -1,0 +1,195 @@
+'use client';
+
+import { useState, useCallback, useEffect } from 'react';
+import type { ColumnInfo } from '@/lib/db-types';
+import { CellEditor } from './CellEditor';
+
+interface SelectionModifiers {
+  metaKey: boolean;
+  shiftKey: boolean;
+  altKey: boolean;
+}
+
+// Content length threshold for opening modal instead of inline editing
+const EXPAND_THRESHOLD = 70;
+
+function shouldExpandToModal(value: unknown): boolean {
+  if (value === null || value === undefined) return false;
+
+  // For objects (JSON), stringify to check length
+  if (typeof value === 'object') {
+    try {
+      return JSON.stringify(value).length > EXPAND_THRESHOLD;
+    } catch {
+      return false;
+    }
+  }
+
+  // For strings and other primitives
+  return String(value).length > EXPAND_THRESHOLD;
+}
+
+interface EditableCellProps {
+  column: ColumnInfo;
+  value: unknown;
+  displayValue: React.ReactNode;
+  isModified: boolean;
+  isEditable: boolean;
+  // Cell selection
+  isSelected?: boolean;
+  previewValue?: unknown;
+  previewDisplayValue?: React.ReactNode;
+  onCellSelect?: (modifiers: SelectionModifiers) => void;
+  // Editing callbacks
+  onValueChange: (newValue: unknown) => void;
+  onLiveValueChange?: (newValue: unknown) => void;
+  onExpand?: () => void;
+  onEditStart?: () => void;
+  onEditEnd?: () => void;
+}
+
+export function EditableCell({
+  column,
+  value,
+  displayValue,
+  isModified,
+  isEditable,
+  isSelected,
+  previewValue,
+  previewDisplayValue,
+  onCellSelect,
+  onValueChange,
+  onLiveValueChange,
+  onExpand,
+  onEditStart,
+  onEditEnd,
+}: EditableCellProps) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValue, setEditValue] = useState<unknown>(value);
+
+  // Sync editValue when value prop changes (e.g., when discarding changes)
+  useEffect(() => {
+    if (!isEditing) {
+      setEditValue(value);
+    }
+  }, [value, isEditing]);
+
+  const handleClick = useCallback(
+    (e: React.MouseEvent) => {
+      // Check for selection/copy modifiers first
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        e.stopPropagation();
+        onCellSelect?.({
+          metaKey: e.metaKey || e.ctrlKey,
+          shiftKey: e.shiftKey,
+          altKey: e.altKey,
+        });
+        return;
+      }
+
+      // Regular click - check if long content should open modal
+      if (isEditable && !isEditing) {
+        if (shouldExpandToModal(value) && onExpand) {
+          // Open modal for long content (> 70 chars)
+          onExpand();
+        } else {
+          // Inline edit for short content
+          setEditValue(value);
+          setIsEditing(true);
+          onEditStart?.();
+        }
+      }
+    },
+    [isEditable, isEditing, value, onEditStart, onCellSelect, onExpand],
+  );
+
+  const handleKeyDown = useCallback(
+    (e: React.KeyboardEvent) => {
+      if (e.key === 'Enter' && !isEditing && isEditable) {
+        e.preventDefault();
+        if (shouldExpandToModal(value) && onExpand) {
+          // Open modal for long content (> 70 chars)
+          onExpand();
+        } else {
+          // Inline edit for short content
+          setEditValue(value);
+          setIsEditing(true);
+          onEditStart?.();
+        }
+      }
+    },
+    [isEditable, isEditing, value, onEditStart, onExpand],
+  );
+
+  const handleCommit = useCallback(() => {
+    setIsEditing(false);
+    onEditEnd?.();
+    if (editValue !== value) {
+      onValueChange(editValue);
+    }
+  }, [editValue, value, onValueChange, onEditEnd]);
+
+  const handleCancel = useCallback(() => {
+    setIsEditing(false);
+    setEditValue(value);
+    onEditEnd?.();
+  }, [value, onEditEnd]);
+
+  const handleChange = useCallback(
+    (newValue: unknown) => {
+      setEditValue(newValue);
+      // Notify parent for live preview in other selected cells
+      onLiveValueChange?.(newValue);
+    },
+    [onLiveValueChange],
+  );
+
+  if (isEditing) {
+    return (
+      <div className="h-full max-w-[300px]">
+        <CellEditor
+          column={column}
+          value={editValue}
+          onChange={handleChange}
+          onCommit={handleCommit}
+          onCancel={handleCancel}
+          onExpand={onExpand}
+        />
+      </div>
+    );
+  }
+
+  // Determine what to display
+  const hasPreview = previewValue !== undefined;
+  const showValue = hasPreview ? previewDisplayValue : displayValue;
+
+  // Build class names
+  const baseClasses =
+    'px-3 py-2 h-full flex items-center text-gray-800 dark:text-slate-300 max-w-[300px] truncate relative';
+  const editableClasses = isEditable
+    ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50'
+    : '';
+  const modifiedClasses = isModified
+    ? 'bg-yellow-100 dark:bg-yellow-900/20'
+    : '';
+  const selectedClasses = isSelected ? 'ring-2 ring-inset ring-yellow-500' : '';
+  const previewClasses = hasPreview ? 'bg-yellow-50 dark:bg-yellow-900/10' : '';
+
+  return (
+    <div
+      className={`${baseClasses} ${editableClasses} ${modifiedClasses} ${selectedClasses} ${previewClasses}`}
+      onClick={handleClick}
+      onKeyDown={handleKeyDown}
+      tabIndex={isEditable ? 0 : -1}
+      role={isEditable ? 'button' : undefined}
+    >
+      <span className="truncate">{showValue}</span>
+      {isModified && !hasPreview && (
+        <span
+          className="absolute top-1 right-1 w-2 h-2 bg-yellow-500 rounded-full"
+          title="Modified"
+        />
+      )}
+    </div>
+  );
+}

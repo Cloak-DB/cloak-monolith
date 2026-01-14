@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { Button } from '@cloak-db/ui/components/button';
 import { Input } from '@cloak-db/ui/components/input';
 import { Checkbox } from '@cloak-db/ui/components/checkbox';
@@ -20,6 +21,7 @@ interface ConnectionFormProps {
 export function ConnectionForm({
   initialConnectionString = '',
 }: ConnectionFormProps) {
+  const router = useRouter();
   const [connectionString, setConnectionString] = useState(
     initialConnectionString,
   );
@@ -53,6 +55,8 @@ export function ConnectionForm({
       if (data.success) {
         success(`Connected to ${data.database}@${data.host}`);
         utils.connection.status.invalidate();
+        // Redirect to studio after successful connection
+        router.push('/studio');
       } else {
         error(data.error?.message || 'Connection failed');
       }

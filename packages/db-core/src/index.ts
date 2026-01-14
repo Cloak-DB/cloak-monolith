@@ -27,7 +27,7 @@ export type {
 } from './connection';
 
 // Shared types and utilities
-export { ErrorCodes } from './shared/errors';
+export { ErrorCodes, createError } from './shared/errors';
 export type { DbError, ErrorCode } from './shared/errors';
 export { getPool, isConnected } from './shared/pool';
 
@@ -53,11 +53,48 @@ export {
   AppPreferencesSchema,
 } from './config';
 
-// Schema service (placeholder)
-// export * from './schema';
+// Schema service
+export {
+  getSchemas,
+  getTables,
+  getColumns,
+  getRelationships,
+  getIndexes,
+} from './schema';
 
-// Query service (placeholder)
-// export * from './query';
+export type {
+  SchemaInfo,
+  TableInfo,
+  ColumnInfo,
+  RelationshipInfo,
+  IndexInfo,
+} from './schema';
 
-// Table service (placeholder)
-// export * from './table';
+// Query service
+export { executeQuery, executeReadOnlyQuery } from './query';
+export type { QueryResult, QueryField } from './query';
+
+// Table service
+export {
+  getRows,
+  getRow,
+  getAllRows,
+  createRow,
+  updateRow,
+  deleteRow,
+  getPrimaryKeyColumns,
+  generateSelectSQL,
+} from './table';
+
+export type {
+  GetRowsOptions,
+  GetRowsResult,
+  GetRowResult,
+  MutationResult,
+  DeleteResult,
+  RowData,
+  PrimaryKey,
+  Filter,
+  FilterOperator,
+  OrderBy,
+} from './table';
