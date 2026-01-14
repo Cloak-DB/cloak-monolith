@@ -89,6 +89,26 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Verify Docker image is available
+        run: |
+          IMAGE="ghcr.io/cloak-db/app:${{ github.ref_name }}"
+          echo "Verifying image: $IMAGE"
+
+          # Retry up to 5 times with 30s delay
+          for i in {1..5}; do
+            if docker pull "$IMAGE"; then
+              echo "✅ Image verified: $IMAGE"
+              DIGEST=$(docker inspect --format='{{index .RepoDigests 0}}' "$IMAGE")
+              echo "📦 Image digest: $DIGEST"
+              exit 0
+            fi
+            echo "Attempt $i failed, waiting 30s..."
+            sleep 30
+          done
+
+          echo "❌ Failed to pull image after 5 attempts"
+          exit 1
+
       - uses: pnpm/action-setup@v4
         with:
           version: "10.18.3"

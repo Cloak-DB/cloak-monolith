@@ -86,6 +86,8 @@ function runContainer(options: CliOptions): void {
     [
       'run',
       '--rm',
+      '--pull',
+      'always',
       '--name',
       containerName,
       '-p',
