@@ -58,6 +58,8 @@ cdk.context.json
 # ----------- Experimental / local folders -----------
 # ----------------------------------------------------
 
+/.prd
+
 # Specs (local planning docs)
 specs/
 

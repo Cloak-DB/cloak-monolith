@@ -33,6 +33,10 @@ interface NavbarProps {
    */
   mobileMenuOpen?: boolean;
   setMobileMenuOpen?: (open: boolean) => void;
+  /**
+   * Additional offset for mobile menu top position (e.g., for preview banners).
+   */
+  mobileMenuTopOffset?: number;
 }
 
 // =============================================================================
@@ -86,6 +90,7 @@ export function Navbar({
   visibility,
   mobileMenuOpen: externalMobileMenuOpen,
   setMobileMenuOpen: externalSetMobileMenuOpen,
+  mobileMenuTopOffset = 0,
 }: NavbarProps) {
   const basePath = locale === 'en' ? '' : `/${locale}`;
   const otherLocale = locale === 'en' ? 'fr' : 'en';
@@ -328,7 +333,7 @@ export function Navbar({
             </div>
           </div>
 
-          {/* Mobile Navigation */}
+          {/* Mobile Navigation Header */}
           <div className="xl:hidden flex items-center justify-between px-4 py-4">
             {/* Logo */}
             <Link
@@ -370,69 +375,69 @@ export function Navbar({
               </button>
             </div>
           </div>
+
+          {/* Mobile Menu - Inside nav, expands below header */}
+          <div
+            className={cn(
+              'xl:hidden overflow-hidden transition-all duration-300 ease-out',
+              mobileMenuOpen
+                ? 'max-h-[500px] opacity-100'
+                : 'max-h-0 opacity-0',
+            )}
+          >
+            <ul className="divide-y-2 divide-black dark:divide-white border-t-2 border-black dark:border-white">
+              <li>
+                <Link
+                  href={`${basePath}/docs`}
+                  className={cn(
+                    styles.mobileNavItem,
+                    styles.mobileNavItemDocs,
+                    !isVisibilityMode &&
+                      isActive(`${basePath}/docs`) &&
+                      'bg-yellow-100 dark:bg-yellow-900/20 border-l-4 border-yellow-500 shadow-[inset_4px_0px_0px_rgba(234,179,8,0.3)]',
+                  )}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {dict.docs}
+                </Link>
+              </li>
+              <li>
+                <a
+                  href={GITHUB_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className={cn(
+                    styles.mobileNavItem,
+                    styles.mobileNavItemGithub,
+                  )}
+                >
+                  <Github
+                    size={24}
+                    strokeWidth={2.5}
+                    className="group-hover:rotate-12 transition-transform duration-300"
+                  />
+                  {dict.github}
+                  <span className="text-xs opacity-60 group-hover:translate-x-1 transition-transform duration-300">
+                    ↗
+                  </span>
+                </a>
+              </li>
+              <li>
+                <Link
+                  href={languageSwitchUrl}
+                  className={cn(styles.mobileNavItem, styles.mobileNavItemLang)}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  {languageLabel === 'FR' ? 'Français' : 'English'}
+                </Link>
+              </li>
+              <li>
+                <ThemeSwitcher isScrolled={false} isMobile />
+              </li>
+            </ul>
+          </div>
         </div>
       </nav>
-
-      {/* Mobile Menu - Full Screen Overlay */}
-      {mobileMenuOpen && (!isVisibilityMode || visibility === 'full') && (
-        <div
-          className={cn(
-            'xl:hidden fixed inset-0 bg-white dark:bg-gray-950 z-40 overflow-y-auto',
-            MOBILE_MENU_TOP,
-            !isVisibilityMode && 'animate-slide-in',
-          )}
-          role="dialog"
-          aria-modal="true"
-        >
-          <ul className="divide-y-2 divide-black dark:divide-white">
-            <li>
-              <Link
-                href={`${basePath}/docs`}
-                className={cn(
-                  styles.mobileNavItem,
-                  styles.mobileNavItemDocs,
-                  !isVisibilityMode &&
-                    isActive(`${basePath}/docs`) &&
-                    'bg-yellow-100 dark:bg-yellow-900/20 border-l-4 border-yellow-500 shadow-[inset_4px_0px_0px_rgba(234,179,8,0.3)]',
-                )}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {dict.docs}
-              </Link>
-            </li>
-            <li>
-              <a
-                href={GITHUB_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className={cn(styles.mobileNavItem, styles.mobileNavItemGithub)}
-              >
-                <Github
-                  size={24}
-                  strokeWidth={2.5}
-                  className="group-hover:rotate-12 transition-transform duration-300"
-                />
-                {dict.github}
-                <span className="text-xs opacity-60 group-hover:translate-x-1 transition-transform duration-300">
-                  ↗
-                </span>
-              </a>
-            </li>
-            <li>
-              <Link
-                href={languageSwitchUrl}
-                className={cn(styles.mobileNavItem, styles.mobileNavItemLang)}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                {languageLabel === 'FR' ? 'Français' : 'English'}
-              </Link>
-            </li>
-            <li>
-              <ThemeSwitcher isScrolled={false} isMobile />
-            </li>
-          </ul>
-        </div>
-      )}
     </>
   );
 }

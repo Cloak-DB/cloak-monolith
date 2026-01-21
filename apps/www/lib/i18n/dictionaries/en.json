@@ -5,19 +5,19 @@
     "getStarted": "Get Started"
   },
   "hero": {
-    "title": "Your database knows more than you think.",
-    "subtitle": "You're just not using it that way yet.",
-    "description": "A Postgres studio that turns your database into a development tool.",
-    "descriptionHighlight": "Understand what happened. Go back to when it worked.",
+    "title": "The Postgres studio built for how you actually work.",
+    "subtitle": "Keyboard-first. Blazing fast. Actually enjoyable.",
+    "description": "A database studio that feels like your favorite code editor.",
+    "descriptionHighlight": "Navigate with shortcuts. Edit with confidence. Ship faster.",
     "ctaPrimary": "Get Early Access",
     "ctaSecondary": "GitHub"
   },
   "differentiators": {
-    "badge": "More than a Postgres studio",
-    "title": "Your database is an underused development tool.",
-    "description": "Most studios let you query data. Cloak DB helps you",
-    "descriptionHighlight": "develop faster",
-    "descriptionEnd": "with it.",
+    "badge": "Built for developers who ship",
+    "title": "Finally, a database studio that respects your workflow.",
+    "description": "Other studios make you click through menus. Cloak DB lets you",
+    "descriptionHighlight": "stay in the flow",
+    "descriptionEnd": "with keyboard shortcuts for everything.",
     "timeMachine": {
       "title": "Time Machine",
       "tagline": "Cmd+Z for your database",
@@ -34,20 +34,57 @@
       "description": "Pull production data for realistic testing. Automatically anonymize PII. Ship with confidence."
     }
   },
+  "studioFeatures": {
+    "badge": "Power-user experience",
+    "title": "Every action has a shortcut. Every workflow is optimized.",
+    "description": "We obsessed over the details so you can focus on building.",
+    "features": [
+      {
+        "title": "Keyboard-First Navigation",
+        "description": "Cmd+E to search tables, Cmd+J for new queries, W to close tabs, ? for help. Your hands never leave the keyboard.",
+        "shortcut": "Cmd+E"
+      },
+      {
+        "title": "Multi-Cell Editing",
+        "description": "Select multiple cells across rows with Cmd+Click. Apply the same change to all of them at once. Batch updates in seconds.",
+        "shortcut": "Cmd+Click"
+      },
+      {
+        "title": "Smart Command Palette",
+        "description": "Fuzzy search across all your tables. Handles typos gracefully. Shows row counts for context. Navigate your schema instantly.",
+        "shortcut": "Cmd+E"
+      },
+      {
+        "title": "Pending Changes System",
+        "description": "All edits are local until you explicitly save. Yellow indicators show unsaved changes. Discard or batch save with Cmd+S.",
+        "shortcut": "Cmd+S"
+      },
+      {
+        "title": "Type-Aware Editors",
+        "description": "Boolean toggles, JSON expansion with syntax highlighting, date pickers, numeric validation. The right editor for every data type.",
+        "shortcut": "Click"
+      },
+      {
+        "title": "Shareable Views",
+        "description": "Pagination, sorting, and filters are preserved in the URL. Share exact views with your team. Browser back/forward just works.",
+        "shortcut": "URL"
+      }
+    ]
+  },
   "problemSolution": {
     "problemBadge": "The problem",
-    "problemTitle": "Development shouldn't feel like walking on eggshells.",
-    "problemLine1": "You're about to run a migration, test a new feature, or debug a weird edge case.",
-    "problemLine2": "And there's that tiny voice:",
-    "problemQuote": "What if this breaks everything?",
-    "problemLine3": "So you make backups. Test in staging. Write defensive code.",
-    "problemConclusion": "You waste time being careful.",
+    "problemTitle": "Database tools shouldn't slow you down.",
+    "problemLine1": "You're deep in debugging. You need to check one value, update a row, trace a foreign key.",
+    "problemLine2": "But your current tool makes you:",
+    "problemQuote": "Click. Wait. Click. Scroll. Click again.",
+    "problemLine3": "Menus everywhere. No shortcuts. Context lost every time you switch tabs.",
+    "problemConclusion": "Your database tool is fighting against your flow.",
     "solutionBadge": "The solution",
-    "solutionTitle": "What if you could just... undo?",
+    "solutionTitle": "A studio that moves at your speed.",
     "solutionLine1": "Cloak DB gives you",
-    "solutionHighlight": "Cmd+Z for your database",
-    "solutionLine2": "Save state before risky changes. Restore in one click. Understand exactly what happened to any resource.",
-    "solutionConclusion": "Develop with confidence. Ship faster."
+    "solutionHighlight": "keyboard shortcuts for everything",
+    "solutionLine2": "Search tables instantly. Edit cells in place. Navigate with the same shortcuts you use in VS Code. Your database work finally feels like coding.",
+    "solutionConclusion": "Stay in the flow. Ship faster."
   },
   "whyNow": {
     "badge": "Why now",
@@ -66,17 +103,16 @@
     "openSource": "Open source",
     "activelyMaintained": "Actively maintained"
   },
-
   "emailCapture": {
     "badge": "Get Started",
     "title": "Ready to Transform Your Development Workflow?",
-    "description": "Join developers building better software with production-realistic test data.",
+    "description": "Join developers who refuse to settle for clunky database tools.",
     "placeholder": "your.email@company.com",
     "buttonText": "Get Early Access",
     "successMessage": "Thanks! We'll keep you updated."
   },
   "footer": {
-    "tagline": "Production-realistic database seeding for development.",
+    "tagline": "The Postgres studio built for developers who ship.",
     "product": "Product",
     "productLinks": [
       {
@@ -113,7 +149,7 @@
     "copyright": "© {year} Cloak DB. Open source under MIT License.",
     "joinBeta": {
       "title": "Join the Beta",
-      "description": "Get early access to Cloak DB and help shape the future of database seeding.",
+      "description": "Get early access to the Postgres studio that actually respects your workflow.",
       "buttonText": "Request Beta Access"
     }
   },
@@ -243,19 +279,19 @@
   "emails": {
     "earlyAccess": {
       "subject": "New Early Access Request",
-      "heading": "🎉 New Early Access Request",
+      "heading": "New Early Access Request",
       "intro": "Someone just requested early access to Cloak!",
       "emailLabel": "Email",
       "companyLabel": "Company",
       "useCaseLabel": "Use Case",
       "submittedAtLabel": "Submitted At",
-      "note": "📌 Follow up with this user to onboard them to Cloak.",
+      "note": "Follow up with this user to onboard them to Cloak.",
       "footerTagline": "Cloak - Database schema capture and anonymization",
       "footerWebsite": "cloak.dev"
     },
     "welcome": {
       "subject": "Welcome to Cloak Early Access",
-      "heading": "Welcome to Cloak! 🎉",
+      "heading": "Welcome to Cloak!",
       "intro": "Thanks for requesting early access. Here are the resources to get started with production-realistic test data.",
       "resourcesHeading": "Available Resources",
       "docsLabel": "Documentation",

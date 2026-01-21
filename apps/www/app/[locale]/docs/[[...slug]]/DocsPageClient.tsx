@@ -1,14 +1,14 @@
 'use client';
 
-import { type ReactNode, useState } from 'react';
+import { type ReactNode, useState, useCallback } from 'react';
 import Link from 'next/link';
-import { Button } from '@cloak-db/ui/components/button';
-import { ArrowRight, Sparkles, Menu, X } from 'lucide-react';
+import { ChevronRight, Menu, X } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
 import { useAnalytics } from '@/lib/analytics/client';
 import type { Locale } from '@/lib/i18n/config';
 import type { DocContent } from '@/lib/mdx';
 import { CANONICAL_DOMAIN } from '@/lib/site';
+import { cn } from '@cloak-db/ui/lib/utils';
 
 type DocsPageClientProps = {
   locale: Locale;
@@ -24,26 +24,158 @@ type DocsPageClientProps = {
   };
 };
 
-const betaBannerContent = {
+const breadcrumbDict = {
   en: {
-    badge: 'Beta Access',
-    title: 'Join the Beta Program',
-    description:
-      'Cloak DB is currently in beta. Get early access and help shape the future of database seeding.',
-    buttonText: 'Request Beta Access',
     home: 'Home',
-    docs: 'Documentation',
+    docs: 'Docs',
   },
   fr: {
-    badge: 'Accès Bêta',
-    title: 'Rejoindre le Programme Bêta',
-    description:
-      "Cloak DB est actuellement en bêta. Obtenez un accès anticipé et aidez à façonner l'avenir du seeding de bases de données.",
-    buttonText: "Demander l'Accès Bêta",
     home: 'Accueil',
     docs: 'Documentation',
   },
 };
+
+// Group docs by category (based on order ranges)
+function groupDocs(docs: DocContent[]) {
+  const groups: Record<string, DocContent[]> = {
+    'Getting Started': [],
+    'Studio Features': [],
+    Reference: [],
+  };
+
+  docs.forEach((doc) => {
+    const order = doc.meta.order || 999;
+    if (order <= 1) {
+      groups['Getting Started'].push(doc);
+    } else if (order <= 3) {
+      groups['Studio Features'].push(doc);
+    } else {
+      groups['Reference'].push(doc);
+    }
+  });
+
+  // Filter out empty groups
+  return Object.entries(groups).filter(([, docs]) => docs.length > 0);
+}
+
+type TableOfContentsProps = {
+  headings: Array<{ id: string; text: string; level: number }>;
+  activeId: string | null;
+};
+
+function TableOfContents({ headings, activeId }: TableOfContentsProps) {
+  if (headings.length === 0) return null;
+
+  return (
+    <nav className="space-y-1">
+      <h4 className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-3">
+        On this page
+      </h4>
+      <ul className="space-y-1">
+        {headings.map((heading) => (
+          <li key={heading.id}>
+            <a
+              href={`#${heading.id}`}
+              className={cn(
+                'block text-sm py-1 transition-colors',
+                heading.level === 3 && 'pl-3',
+                activeId === heading.id
+                  ? 'text-yellow-600 dark:text-yellow-500 font-medium'
+                  : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white',
+              )}
+            >
+              {heading.text}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </nav>
+  );
+}
+
+type SidebarSectionProps = {
+  title: string;
+  docs: DocContent[];
+  currentSlug: string;
+  basePath: string;
+  defaultOpen?: boolean;
+  onNavigate?: () => void;
+};
+
+function SidebarSection({
+  title,
+  docs,
+  currentSlug,
+  basePath,
+  defaultOpen = false,
+  onNavigate,
+}: SidebarSectionProps) {
+  const hasActivePage = docs.some((d) => d.meta.slug === currentSlug);
+  const [isOpen, setIsOpen] = useState(defaultOpen || hasActivePage);
+  const { track } = useAnalytics();
+
+  return (
+    <div className="mb-4">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center justify-between w-full text-left py-1.5 group"
+      >
+        <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
+          {title}
+        </span>
+        <ChevronRight
+          className={cn(
+            'w-4 h-4 text-gray-400 transition-transform duration-200',
+            isOpen && 'rotate-90',
+          )}
+        />
+      </button>
+      <div
+        className={cn(
+          'grid transition-all duration-200 ease-out',
+          isOpen ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0',
+        )}
+      >
+        <ul className="overflow-hidden mt-1 space-y-0.5">
+          {docs.map((d, index) => (
+            <li
+              key={d.meta.slug}
+              className={cn(
+                'transition-all duration-200',
+                isOpen
+                  ? 'translate-y-0 opacity-100'
+                  : '-translate-y-2 opacity-0',
+              )}
+              style={{
+                transitionDelay: isOpen ? `${index * 50}ms` : '0ms',
+              }}
+            >
+              <Link
+                href={`${basePath}/docs/${d.meta.slug}`}
+                onClick={() => {
+                  onNavigate?.();
+                  track('link_clicked', {
+                    link_type: 'docs_nav',
+                    from_page: currentSlug,
+                    to_page: d.meta.slug,
+                  });
+                }}
+                className={cn(
+                  'block py-1.5 px-3 text-sm rounded-md transition-colors',
+                  d.meta.slug === currentSlug
+                    ? 'bg-yellow-100 dark:bg-yellow-900/20 text-yellow-700 dark:text-yellow-500 font-medium'
+                    : 'text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800',
+                )}
+              >
+                {d.meta.title}
+              </Link>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
+  );
+}
 
 export function DocsPageClient({
   locale,
@@ -55,18 +187,21 @@ export function DocsPageClient({
   navbarDict,
 }: DocsPageClientProps) {
   const { track } = useAnalytics();
-  const dict = locale === 'fr' ? betaBannerContent.fr : betaBannerContent.en;
+  const dict = locale === 'fr' ? breadcrumbDict.fr : breadcrumbDict.en;
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [headings, setHeadings] = useState<
+    Array<{ id: string; text: string; level: number }>
+  >([]);
+  const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
 
-  const handleJoinBeta = () => {
-    track('button_clicked', {
-      button_id: 'join_beta',
-      location: 'docs_banner',
-      page: slugString,
-      destination: '/#beta',
-    });
-    window.location.href = locale === 'en' ? '/#beta' : `/${locale}/#beta`;
-  };
+  const groupedDocs = groupDocs(allDocs);
+
+  const handleHeadingsExtracted = useCallback(
+    (extracted: Array<{ id: string; text: string; level: number }>) => {
+      setHeadings(extracted);
+    },
+    [],
+  );
 
   const breadcrumbJsonLd = {
     '@context': 'https://schema.org',
@@ -106,182 +241,128 @@ export function DocsPageClient({
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
-      <div className="min-h-screen flex flex-col">
+      <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
         <Navbar locale={locale} dict={navbarDict} />
 
         <div className="flex flex-1">
-          {/* Mobile Docs Navigation Toggle */}
-          <div className="lg:hidden fixed bottom-4 right-4 z-50">
+          {/* Mobile Nav Toggle */}
+          <div className="lg:hidden fixed bottom-4 right-4 z-[70]">
             <button
               onClick={() => setMobileNavOpen(!mobileNavOpen)}
-              className="flex items-center justify-center w-14 h-14 bg-yellow-500 border-2 border-black dark:border-yellow-500 shadow-[4px_4px_0px_theme(colors.black)] dark:shadow-[4px_4px_0px_rgba(234,179,8,0.3)] hover:shadow-[6px_6px_0px_theme(colors.black)] hover:translate-x-[-2px] hover:translate-y-[-2px] transition-all duration-200"
-              aria-label={
-                mobileNavOpen
-                  ? 'Close documentation menu'
-                  : 'Open documentation menu'
-              }
-              aria-expanded={mobileNavOpen}
-            >
-              {mobileNavOpen ? (
-                <X size={24} strokeWidth={2.5} className="text-black" />
-              ) : (
-                <Menu size={24} strokeWidth={2.5} className="text-black" />
+              className={cn(
+                'flex items-center justify-center w-12 h-12 bg-yellow-500 rounded-full shadow-lg hover:bg-yellow-400 transition-all duration-300 hover:scale-110 active:scale-95',
+                mobileNavOpen && 'rotate-90',
               )}
+              aria-label={mobileNavOpen ? 'Close menu' : 'Open menu'}
+            >
+              <div className="relative w-5 h-5">
+                <Menu
+                  size={20}
+                  className={cn(
+                    'text-black absolute inset-0 transition-all duration-300',
+                    mobileNavOpen
+                      ? 'opacity-0 rotate-90 scale-50'
+                      : 'opacity-100 rotate-0 scale-100',
+                  )}
+                />
+                <X
+                  size={20}
+                  className={cn(
+                    'text-black absolute inset-0 transition-all duration-300',
+                    mobileNavOpen
+                      ? 'opacity-100 rotate-0 scale-100'
+                      : 'opacity-0 -rotate-90 scale-50',
+                  )}
+                />
+              </div>
             </button>
           </div>
 
-          {/* Mobile Docs Navigation Drawer */}
-          {mobileNavOpen && (
-            <div
-              className="lg:hidden fixed inset-0 top-[73px] z-40 bg-black/50"
-              onClick={() => setMobileNavOpen(false)}
+          {/* Mobile Nav Drawer */}
+          <div
+            className={cn(
+              'lg:hidden fixed inset-0 top-0 z-[60] transition-all duration-300',
+              mobileNavOpen
+                ? 'bg-black/50 pointer-events-auto'
+                : 'bg-transparent pointer-events-none',
+            )}
+            onClick={() => setMobileNavOpen(false)}
+          >
+            <aside
+              className={cn(
+                'absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 p-4 pt-6 overflow-y-auto transition-transform duration-300 ease-out shadow-xl',
+                mobileNavOpen ? 'translate-x-0' : '-translate-x-full',
+              )}
+              onClick={(e) => e.stopPropagation()}
             >
-              <aside
-                className="absolute left-0 top-0 bottom-0 w-72 bg-white dark:bg-gray-950 border-r-2 border-black dark:border-white p-6 pt-4 overflow-y-auto animate-slide-in"
-                onClick={(e) => e.stopPropagation()}
-              >
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-bold text-lg text-black dark:text-white">
-                    Documentation
-                  </h2>
-                  <button
-                    onClick={() => setMobileNavOpen(false)}
-                    className="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors"
-                    aria-label="Close menu"
-                  >
-                    <X size={20} strokeWidth={2.5} />
-                  </button>
-                </div>
-                <nav>
-                  <ul className="space-y-2">
-                    {allDocs.map((d) => (
-                      <li key={d.meta.slug}>
-                        <Link
-                          href={`${basePath}/docs/${d.meta.slug}`}
-                          onClick={() => {
-                            setMobileNavOpen(false);
-                            track('link_clicked', {
-                              link_type: 'docs_nav_mobile',
-                              from_page: slugString,
-                              to_page: d.meta.slug,
-                            });
-                          }}
-                          className={`block p-3 rounded-lg border-2 transition text-base ${
-                            d.meta.slug === slugString
-                              ? 'border-yellow-500 bg-yellow-500 dark:bg-transparent text-black dark:text-yellow-500 font-bold'
-                              : 'border-transparent hover:border-yellow-500 hover:text-yellow-500'
-                          }`}
-                        >
-                          {d.meta.title}
-                        </Link>
-                      </li>
-                    ))}
-                  </ul>
-                </nav>
-              </aside>
-            </div>
-          )}
+              {groupedDocs.map(([title, docs]) => (
+                <SidebarSection
+                  key={title}
+                  title={title}
+                  docs={docs}
+                  currentSlug={slugString}
+                  basePath={basePath}
+                  defaultOpen
+                  onNavigate={() => setMobileNavOpen(false)}
+                />
+              ))}
+            </aside>
+          </div>
 
           {/* Desktop Sidebar */}
-          <aside className="hidden lg:block w-64 border-r-2 border-black dark:border-white p-6 bg-white dark:bg-gray-950">
-            <h2 className="font-bold text-lg mb-4 text-black dark:text-white">
-              Documentation
-            </h2>
-            <nav>
-              <ul className="space-y-2">
-                {allDocs.map((d) => (
-                  <li key={d.meta.slug}>
-                    <Link
-                      href={`${basePath}/docs/${d.meta.slug}`}
-                      onClick={() =>
-                        track('link_clicked', {
-                          link_type: 'docs_nav',
-                          from_page: slugString,
-                          to_page: d.meta.slug,
-                        })
-                      }
-                      className={`block p-2 rounded-lg border-2 transition ${
-                        d.meta.slug === slugString
-                          ? 'border-yellow-500 bg-yellow-500 dark:bg-transparent text-black dark:text-yellow-500 font-bold'
-                          : 'border-transparent hover:border-yellow-500 hover:text-yellow-500'
-                      }`}
-                    >
-                      {d.meta.title}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </nav>
+          <aside className="hidden lg:block w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 p-4 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
+            {groupedDocs.map(([title, docs]) => (
+              <SidebarSection
+                key={title}
+                title={title}
+                docs={docs}
+                currentSlug={slugString}
+                basePath={basePath}
+              />
+            ))}
           </aside>
 
-          <main className="flex-1 bg-white dark:bg-gray-950 min-w-0">
-            {/* Breadcrumbs */}
-            <nav
-              aria-label="Breadcrumb"
-              className="border-b-2 border-black dark:border-white bg-gray-50 dark:bg-gray-900 px-4 sm:px-6 py-3 overflow-x-auto"
-            >
-              <ol className="max-w-4xl mx-auto flex items-center space-x-2 text-sm font-bold text-gray-600 dark:text-gray-400 whitespace-nowrap">
-                <li className="flex-shrink-0">
-                  <Link
-                    href={basePath}
-                    className="hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors"
-                  >
-                    {dict.home}
-                  </Link>
-                </li>
-                <li aria-hidden="true" className="flex-shrink-0">
-                  /
-                </li>
-                <li className="flex-shrink-0">
-                  <Link
-                    href={`${basePath}/docs`}
-                    className="hover:text-yellow-600 dark:hover:text-yellow-500 transition-colors"
-                  >
-                    {dict.docs}
-                  </Link>
-                </li>
-                <li aria-hidden="true" className="flex-shrink-0">
-                  /
-                </li>
-                <li
-                  className="text-black dark:text-white truncate"
-                  aria-current="page"
+          {/* Main Content */}
+          <main className="flex-1 min-w-0">
+            {/* Page Header */}
+            <div className="border-b border-gray-200 dark:border-gray-800 px-6 py-4">
+              <nav className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                <Link
+                  href={basePath || '/'}
+                  className="hover:text-gray-700 dark:hover:text-gray-300"
                 >
+                  {dict.home}
+                </Link>
+                <span className="mx-2">/</span>
+                <Link
+                  href={`${basePath}/docs`}
+                  className="hover:text-gray-700 dark:hover:text-gray-300"
+                >
+                  {dict.docs}
+                </Link>
+                <span className="mx-2">/</span>
+                <span className="text-gray-900 dark:text-white">
                   {docTitle}
-                </li>
-              </ol>
-            </nav>
-
-            <div
-              id="main-content"
-              className="border-b-2 border-black dark:border-white bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/10 dark:to-orange-900/10 p-6"
-            >
-              <div className="max-w-4xl mx-auto flex flex-col md:flex-row items-start md:items-center gap-4 justify-between">
-                <div className="flex-1">
-                  <div className="inline-block bg-gradient-to-r from-yellow-400 to-orange-400 border-2 border-black dark:border-yellow-500 text-black dark:text-black px-2 py-1 font-black text-xs uppercase rotate-[-1deg] shadow-[2px_2px_0px_theme(colors.black)] dark:shadow-[2px_2px_0px_rgba(234,179,8,0.3)] mb-3">
-                    <Sparkles className="inline w-3 h-3 mr-1 mb-0.5" />
-                    {dict.badge}
-                  </div>
-                  <h3 className="text-xl font-black text-black dark:text-white mb-1">
-                    {dict.title}
-                  </h3>
-                  <p className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                    {dict.description}
-                  </p>
-                </div>
-                <Button
-                  onClick={handleJoinBeta}
-                  variant="yellow"
-                  className="font-black uppercase group whitespace-nowrap"
-                >
-                  {dict.buttonText}
-                  <ArrowRight className="w-4 h-4 ml-2 transition-transform duration-300 group-hover:translate-x-1" />
-                </Button>
-              </div>
+                </span>
+              </nav>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                {docTitle}
+              </h1>
             </div>
 
-            <div className="p-4 sm:p-6 md:p-8 lg:p-12 max-w-4xl mx-auto">
-              {renderedContent}
+            <div className="flex">
+              {/* Content */}
+              <div className="flex-1 px-6 py-8 max-w-3xl">
+                {renderedContent}
+              </div>
+
+              {/* Right Sidebar - Table of Contents */}
+              <aside className="hidden xl:block w-56 flex-shrink-0 p-4 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
+                <TableOfContents
+                  headings={headings}
+                  activeId={activeHeadingId}
+                />
+              </aside>
             </div>
           </main>
         </div>

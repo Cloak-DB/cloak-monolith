@@ -1,76 +1,106 @@
 ---
 title: Getting Started
-description: Get started with Cloak DB
+description: Get up and running with Cloak DB in minutes
 order: 1
 ---
 
-# Getting Started with Cloak DB
+# Getting Started
 
-## What is Cloak DB?
+Cloak DB is a PostgreSQL studio built for developers. Browse your data, run queries, and edit rows - all from a keyboard-friendly interface.
 
-Cloak DB is a **local-first, open-source tool** that lets you restore production database snapshots to your development environment—with anonymization, smart filtering, and reusable test scenarios.
+## Installation
 
-Work with realistic data locally. No cloud dependency. No secrets exposed.
+Cloak DB runs as a Docker container. Make sure you have [Docker](https://docker.com) installed and running.
 
-## The Problem We Solve
+```bash
+npx @cloak-app/app
+```
 
-Testing and development with realistic data is hard:
-- Manual data entry is tedious and unrealistic
-- Production dumps contain sensitive information
-- Setting up complex test scenarios takes too long
-- QA teams struggle to reproduce specific edge cases
-- Demos require specific data states that are hard to create
+This will:
+1. Pull the latest Cloak DB image
+2. Start the studio on port 3000
+3. Open your browser automatically
 
-## How Cloak DB Helps
+**Options:**
+- `--port 3001` - Use a different port
+- `--tag 0.2.4` - Use a specific version
 
-### 1. Restore Production Data Locally
-Connect to your production database and dump data to your dev environment with smart filtering:
-- Restore only what you need (e.g., "5 users + all related data")
-- Automatic foreign key traversal ensures referential integrity
-- Explicit table includes for fine-grained control
-- Currently supports PostgreSQL (more databases coming)
+## Connect to Your Database
 
-### 2. Anonymize Sensitive Data
-Transform sensitive fields before data touches your local machine:
-- Define anonymization rules using TypeScript-based configuration
-- Built on Faker for realistic fake data
-- Config-based, auditable, and git-friendly
-- Protects privacy while maintaining data realism
+1. Click **Add Connection** on the home screen
+2. Enter your PostgreSQL connection string:
+   ```
+   postgresql://user:password@localhost:5432/mydb
+   ```
+3. Give it a name (e.g., "Local Dev")
+4. Click **Test Connection** to verify
+5. Click **Save**
 
-### 3. Reusable Test Scenarios
-Save and restore specific test scenarios with one click:
-- Example: "User with 3 pending items, one past due"
-- Perfect for QA workflows, demos, and repeatable testing
-- Team-shareable via version control
-- No secrets stored in your repo
+Your connections are stored locally in `~/.config/cloak-db/config.json`.
 
-## Who Should Use Cloak DB?
+## Navigate the Studio
 
-- **QA Teams** — Set up complex test states without manual data entry
-- **Developers** — Test against realistic data locally, catch edge cases early
-- **Demo/Sales** — Show specific scenarios to stakeholders in seconds
-- **E2E Testing** — Build reliable test suites with realistic data
+Once connected, you'll see:
 
-## How It Works
+- **Left sidebar** - Your schemas and tables
+- **Main area** - Data browser or query editor
+- **Tabs** - Open multiple tables at once
 
-1. **Local Server** — Runs on your machine with a web frontend and API
-2. **Configure** — Set up database connections and anonymization rules (git-friendly, secrets injected at runtime)
-3. **Restore** — Pull production-realistic data to your dev database
-4. **Create Scenarios** — Save reusable test scenarios
-5. **Click to Restore** — Restore any scenario instantly
+### Quick Actions
 
-## Architecture
+| Action | Shortcut |
+|--------|----------|
+| Search tables | `Cmd+E` |
+| New query tab | `Cmd+J` |
+| Close tab | `W` |
+| Save changes | `Cmd+S` |
+| Show all shortcuts | `?` |
 
-Cloak DB runs entirely on your local machine:
-- Web-based UI for managing connections and scenarios
-- API server for orchestrating data operations
-- Database introspection engine
-- Anonymization pipeline
-- Scenario management system
+## Browse Data
 
-All your data stays local. Your production secrets never leave your control.
+Click any table to view its data. You can:
 
-## Current Status
+- **Sort** - Click column headers
+- **Filter** - Use the filter bar with operators like `=`, `>`, `contains`
+- **Search** - Fuzzy search within the current page
+- **Paginate** - Navigate through large tables (25-1000 rows per page)
 
-Cloak DB is in **active development** with a beta program available. Join the beta to get early access and help shape the product.
+## Edit Data
 
+Cloak DB tracks your changes before saving:
+
+1. **Click a cell** to edit inline
+2. **Yellow indicator** shows pending changes
+3. **Cmd+S** to save all changes
+4. **Discard** to revert
+
+You can also:
+- **Add rows** with `Cmd+N`
+- **Delete rows** by selecting and pressing `Delete`
+- **Multi-select cells** with `Cmd+Click`
+
+## Run Queries
+
+Open a query tab with `Cmd+J` and write SQL:
+
+```sql
+SELECT * FROM users WHERE created_at > '2024-01-01';
+```
+
+Press `Cmd+Enter` to execute. Results are limited to 500 rows.
+
+**Safety:** Dangerous operations like `DROP DATABASE` are blocked.
+
+## What's Next
+
+- [Keyboard Shortcuts](/docs/keyboard-shortcuts) - Full shortcut reference
+- [Studio Features](/docs/studio-features) - Data browser details
+
+## Roadmap
+
+We're actively working on:
+- **Time Machine** - Save and restore database states
+- **Resource Inspector** - Visualize relationships
+- **Anonymization** - Mask PII for safe testing
+
+Follow progress on [GitHub](https://github.com/Cloak-DB/cloak-monolith).
