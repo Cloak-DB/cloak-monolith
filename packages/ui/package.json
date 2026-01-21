@@ -16,6 +16,7 @@
     "./components/alert": "./components/alert.tsx",
     "./components/toast": "./components/toast.tsx",
     "./components/spinner": "./components/spinner.tsx",
+    "./components/skeleton": "./components/skeleton.tsx",
     "./components/error-boundary": "./components/error-boundary.tsx",
     "./components/icon": "./components/icon.tsx",
     "./lib/*": "./lib/*.ts",

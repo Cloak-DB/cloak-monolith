@@ -36,6 +36,7 @@ export interface UsePendingChangesReturn {
   ) => void;
   getCellValue: (rowKey: string, column: string) => unknown | undefined;
   hasCellChange: (rowKey: string, column: string) => boolean;
+  discardCellChange: (rowKey: string, column: string) => void;
   // Row operations
   addNewRow: (tempId: string, data: Record<string, unknown>) => void;
   updateNewRow: (tempId: string, column: string, value: unknown) => void;
@@ -51,7 +52,15 @@ export interface UsePendingChangesReturn {
       data: Record<string, unknown>;
     }>;
   };
+  getCellChangeForSave: (
+    rowKey: string,
+    column: string,
+  ) => {
+    primaryKey: Record<string, unknown>;
+    data: Record<string, unknown>;
+  } | null;
   markSaved: () => void;
+  markCellSaved: (rowKey: string, column: string) => void;
 }
 
 export function usePendingChanges(): UsePendingChangesReturn {
@@ -169,6 +178,28 @@ export function usePendingChanges(): UsePendingChangesReturn {
     [changes],
   );
 
+  const discardCellChange = useCallback((rowKey: string, column: string) => {
+    setChanges((prev) => {
+      const newChanges = new Map(prev);
+      const existing = newChanges.get(rowKey);
+
+      if (!existing) return prev;
+
+      if (existing.type === 'update') {
+        const filteredChanges = existing.changes.filter(
+          (c) => c.column !== column,
+        );
+        if (filteredChanges.length === 0) {
+          newChanges.delete(rowKey);
+        } else {
+          newChanges.set(rowKey, { ...existing, changes: filteredChanges });
+        }
+      }
+
+      return newChanges;
+    });
+  }, []);
+
   const addNewRow = useCallback(
     (tempId: string, data: Record<string, unknown>) => {
       setChanges((prev) => {
@@ -263,11 +294,54 @@ export function usePendingChanges(): UsePendingChangesReturn {
     setChanges(new Map());
   }, []);
 
+  const getCellChangeForSave = useCallback(
+    (rowKey: string, column: string) => {
+      const rowChanges = changes.get(rowKey);
+      if (
+        !rowChanges ||
+        rowChanges.type !== 'update' ||
+        !rowChanges.primaryKey
+      ) {
+        return null;
+      }
+
+      const change = rowChanges.changes.find((c) => c.column === column);
+      if (!change) return null;
+
+      return {
+        primaryKey: rowChanges.primaryKey,
+        data: { [column]: change.newValue },
+      };
+    },
+    [changes],
+  );
+
+  const markCellSaved = useCallback((rowKey: string, column: string) => {
+    setChanges((prev) => {
+      const newChanges = new Map(prev);
+      const existing = newChanges.get(rowKey);
+
+      if (!existing || existing.type !== 'update') return prev;
+
+      const filteredChanges = existing.changes.filter(
+        (c) => c.column !== column,
+      );
+      if (filteredChanges.length === 0) {
+        newChanges.delete(rowKey);
+      } else {
+        newChanges.set(rowKey, { ...existing, changes: filteredChanges });
+      }
+
+      return newChanges;
+    });
+  }, []);
+
   return {
     state,
     setCellValue,
     getCellValue,
     hasCellChange,
+    discardCellChange,
     addNewRow,
     updateNewRow,
     removeNewRow,
@@ -275,6 +349,8 @@ export function usePendingChanges(): UsePendingChangesReturn {
     discardAll,
     discardRow,
     getChangesForSave,
+    getCellChangeForSave,
     markSaved,
+    markCellSaved,
   };
 }

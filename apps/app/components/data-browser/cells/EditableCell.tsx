@@ -78,6 +78,7 @@ export function EditableCell({
     (e: React.MouseEvent) => {
       // Check for selection/copy modifiers first
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
+        e.preventDefault();
         e.stopPropagation();
         onCellSelect?.({
           metaKey: e.metaKey || e.ctrlKey,

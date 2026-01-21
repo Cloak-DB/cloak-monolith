@@ -15,6 +15,9 @@ import { CommandPalette } from '@/components/command-palette';
 import { ConnectionSwitcher } from '@/components/connection-switcher';
 import { Spinner } from '@cloak-db/ui/components/spinner';
 import { Database, Home, Settings } from 'lucide-react';
+import { DevProviderWrapper } from '@/lib/dev/DevProviderWrapper';
+import { DevTools } from '@/components/dev/DevTools';
+import { DevTrigger } from '@/components/dev/DevTrigger';
 
 export default function StudioLayout({
   children,
@@ -62,15 +65,18 @@ export default function StudioLayout({
   }
 
   return (
-    <SchemaProvider defaultSchema="public">
-      <TabsProvider>
-        <StudioContent
-          database={status.database ?? ''}
-          host={status.host ?? ''}
-          port={status.port ?? 5432}
-        />
-      </TabsProvider>
-    </SchemaProvider>
+    <DevProviderWrapper>
+      <SchemaProvider defaultSchema="public">
+        <TabsProvider>
+          <StudioContent
+            database={status.database ?? ''}
+            host={status.host ?? ''}
+            port={status.port ?? 5432}
+          />
+          <DevTools />
+        </TabsProvider>
+      </SchemaProvider>
+    </DevProviderWrapper>
   );
 }
 
@@ -143,6 +149,7 @@ function StudioContent({ database, host, port }: StudioContentProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <DevTrigger />
             {/* Keyboard shortcut hint */}
             <button
               onClick={() => setIsCommandPaletteOpen(true)}

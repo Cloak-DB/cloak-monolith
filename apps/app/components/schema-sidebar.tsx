@@ -2,13 +2,14 @@
 
 import { useState, useMemo, useCallback } from 'react';
 import { Input } from '@cloak-db/ui/components/input';
-import { Spinner } from '@cloak-db/ui/components/spinner';
+import { Skeleton } from '@cloak-db/ui/components/skeleton';
 import { trpc } from '@/lib/trpc/client';
 import { useSchema } from '@/lib/schema-context';
 import { useTabs } from '@/lib/tabs-context';
 import { SchemaSelector } from './schema-selector';
 import { SidebarContextMenu } from './sidebar-context-menu';
-import { Table, Zap, Search } from 'lucide-react';
+import { Table, Zap, Search, Inbox, SearchX } from 'lucide-react';
+import { useDevOverrides } from '@/lib/dev/use-dev-overrides';
 
 function formatRowCount(count: number): string {
   return count.toLocaleString();
@@ -61,6 +62,24 @@ function TableListItem({
   );
 }
 
+// Skeleton version of TableListItem for loading state
+function SkeletonTableItem({ index }: { index: number }) {
+  // Vary the width based on index for visual interest
+  const nameWidth = 60 + ((index * 17) % 40); // 60-100%
+  return (
+    <div className="w-full flex items-center justify-between px-3 py-2 rounded-lg">
+      <div className="flex items-center gap-2 min-w-0 flex-1">
+        <Skeleton className="w-4 h-4 flex-shrink-0" variant="rectangular" />
+        <Skeleton
+          className="h-4 flex-1"
+          style={{ maxWidth: `${nameWidth}%` }}
+        />
+      </div>
+      <Skeleton className="h-3 w-8 ml-2 flex-shrink-0" />
+    </div>
+  );
+}
+
 export function SchemaSidebar() {
   const { selectedSchema } = useSchema();
   const { activeTabId, openTab, getTabById } = useTabs();
@@ -76,6 +95,10 @@ export function SchemaSidebar() {
     { schema: selectedSchema },
     { enabled: !!selectedSchema },
   );
+
+  // Dev overrides for testing loading states
+  const { isForceLoading } = useDevOverrides();
+  const effectiveIsLoading = isLoading || isForceLoading;
 
   // Get current table from active tab
   const currentTable = useMemo(() => {
@@ -148,9 +171,11 @@ export function SchemaSidebar() {
             Tables
           </h3>
 
-          {isLoading && (
-            <div className="flex items-center justify-center py-8">
-              <Spinner size="sm" />
+          {effectiveIsLoading && (
+            <div className="space-y-0.5">
+              {Array.from({ length: 8 }).map((_, i) => (
+                <SkeletonTableItem key={i} index={i} />
+              ))}
             </div>
           )}
 
@@ -160,13 +185,33 @@ export function SchemaSidebar() {
             </div>
           )}
 
-          {!isLoading && !error && filteredTables.length === 0 && (
-            <div className="px-3 py-4 text-sm text-gray-500 dark:text-gray-400">
-              {filter ? 'No tables match your filter' : 'No tables in schema'}
+          {!effectiveIsLoading && !error && filteredTables.length === 0 && (
+            <div className="px-3 py-8 flex flex-col items-center gap-2 text-center">
+              {filter ? (
+                <>
+                  <SearchX
+                    size={24}
+                    className="text-gray-400 dark:text-gray-500"
+                  />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No tables match &quot;{filter}&quot;
+                  </p>
+                </>
+              ) : (
+                <>
+                  <Inbox
+                    size={24}
+                    className="text-gray-400 dark:text-gray-500"
+                  />
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    No tables in this schema
+                  </p>
+                </>
+              )}
             </div>
           )}
 
-          {!isLoading && !error && filteredTables.length > 0 && (
+          {!effectiveIsLoading && !error && filteredTables.length > 0 && (
             <div className="space-y-0.5">
               {filteredTables.map((table) => (
                 <TableListItem

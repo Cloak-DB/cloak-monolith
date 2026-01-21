@@ -3,12 +3,12 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
+import { useToast } from '@cloak-db/ui/components/toast';
 import type { ColumnInfo, Filter } from '@/lib/db-types';
 import { DataGrid } from './DataGrid';
 import { Pagination } from './Pagination';
 import { FilterBar } from './FilterBar';
 import { ActionToolbar } from './ActionToolbar';
-import { PendingChangesBar } from './PendingChangesBar';
 import { UnsavedChangesModal } from './UnsavedChangesModal';
 import { RowDetailModal } from './RowDetailModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
@@ -45,6 +45,7 @@ export function DataBrowser({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const utils = trpc.useUtils();
+  const { success: toastSuccess } = useToast();
 
   // Parse URL params
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -248,14 +249,18 @@ export function DataBrowser({
   );
 
   // Copy cell value to clipboard
-  const copyCellValue = useCallback(async (value: unknown) => {
-    const text = value === null ? '' : String(value);
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  }, []);
+  const copyCellValue = useCallback(
+    async (value: unknown) => {
+      const text = value === null ? '' : String(value);
+      try {
+        await navigator.clipboard.writeText(text);
+        toastSuccess('Copied to clipboard', 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    },
+    [toastSuccess],
+  );
 
   // Copy selected cells to clipboard
   const copySelectedCells = useCallback(async () => {
@@ -284,10 +289,17 @@ export function DataBrowser({
     const text = values.join(', ');
     try {
       await navigator.clipboard.writeText(text);
+      const count = values.length;
+      toastSuccess(
+        count === 1
+          ? 'Copied to clipboard'
+          : `Copied ${count} values to clipboard`,
+        2000,
+      );
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  }, [cellSelection, getRowDataFromKey, pendingChanges]);
+  }, [cellSelection, getRowDataFromKey, pendingChanges, toastSuccess]);
 
   // Handle cell selection
   const handleCellSelect = useCallback(
@@ -629,6 +641,45 @@ export function DataBrowser({
     setSaveError(null);
   }, [pendingChanges]);
 
+  // Save a single cell change
+  const handleSaveCellChange = useCallback(
+    async (rowKey: string, column: string) => {
+      const cellChange = pendingChanges.getCellChangeForSave(rowKey, column);
+      if (!cellChange) return;
+
+      setIsSaving(true);
+      setSaveError(null);
+
+      try {
+        await updateRowMutation.mutateAsync({
+          schema,
+          table,
+          primaryKey: cellChange.primaryKey,
+          data: cellChange.data,
+        });
+
+        // Mark this cell as saved
+        pendingChanges.markCellSaved(rowKey, column);
+        await utils.table.getRows.invalidate({ schema, table });
+      } catch (err) {
+        setSaveError(
+          err instanceof Error ? err.message : 'Failed to save change',
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [pendingChanges, updateRowMutation, schema, table, utils.table.getRows],
+  );
+
+  // Discard a single cell change
+  const handleDiscardCellChange = useCallback(
+    (rowKey: string, column: string) => {
+      pendingChanges.discardCellChange(rowKey, column);
+    },
+    [pendingChanges],
+  );
+
   // Refs for keyboard handler to avoid re-attaching listeners
   const keyboardStateRef = useRef({
     isDirty: pendingChanges.state.isDirty,
@@ -757,8 +808,12 @@ export function DataBrowser({
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-900">
-      {/* Pending Changes Bar */}
-      <PendingChangesBar
+      {/* Action Toolbar (includes pending changes indicator) */}
+      <ActionToolbar
+        onNewRow={handleNewRow}
+        selectedCount={rowSelection.selectedCount}
+        onDeleteSelected={handleDeleteSelectedRequest}
+        hasUnsavedChanges={pendingChanges.state.isDirty}
         changeCount={pendingChanges.state.changeCount}
         rowCount={pendingChanges.state.rowCount}
         newRowCount={pendingChanges.state.newRowCount}
@@ -766,14 +821,6 @@ export function DataBrowser({
         saveError={saveError}
         onSave={handleSave}
         onDiscard={handleDiscard}
-      />
-
-      {/* Action Toolbar */}
-      <ActionToolbar
-        onNewRow={handleNewRow}
-        selectedCount={rowSelection.selectedCount}
-        onDeleteSelected={handleDeleteSelectedRequest}
-        hasUnsavedChanges={pendingChanges.state.isDirty}
       />
 
       {/* Filter Bar */}
@@ -827,6 +874,12 @@ export function DataBrowser({
         onDuplicateRow={handleDuplicateRow}
         onDeleteRow={handleDeleteRowRequest}
         canDeleteRow={canDeleteRow}
+        // Copy feedback
+        onCopySuccess={() => toastSuccess('Copied to clipboard', 2000)}
+        // Cell-specific pending change operations (for context menu)
+        onSaveCellChange={handleSaveCellChange}
+        onDiscardCellChange={handleDiscardCellChange}
+        isSaving={isSaving}
       />
 
       {/* Pagination */}

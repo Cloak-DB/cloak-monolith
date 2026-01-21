@@ -23,6 +23,7 @@ export function ConnectionSwitcher({
   const utils = trpc.useUtils();
 
   const { data: configData } = trpc.config.get.useQuery();
+  const disconnectMutation = trpc.connection.disconnect.useMutation();
   const connectMutation = trpc.connection.connect.useMutation({
     onSuccess: () => {
       utils.connection.status.invalidate();
@@ -47,13 +48,34 @@ export function ConnectionSwitcher({
 
   const savedConnections = configData?.connections ?? [];
 
-  const handleConnect = (connectionString: string) => {
+  // Check if a connection matches the current active connection
+  const isCurrentConnection = (connectionString: string): boolean => {
+    try {
+      const url = new URL(connectionString);
+      const connDatabase = url.pathname.slice(1);
+      const connHost = url.hostname;
+      const connPort = url.port || '5432';
+
+      return (
+        connDatabase === currentDatabase &&
+        connHost === currentHost &&
+        String(connPort) === String(currentPort)
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const handleConnect = async (connectionString: string) => {
+    // Disconnect from current connection first
+    await disconnectMutation.mutateAsync();
+    utils.connection.status.invalidate();
     connectMutation.mutate({ connectionString });
   };
 
   // Find current connection name from saved connections
   const currentConnectionName = savedConnections.find((conn) =>
-    conn.connectionString.includes(currentDatabase),
+    isCurrentConnection(conn.connectionString),
   )?.name;
 
   return (
@@ -81,27 +103,27 @@ export function ConnectionSwitcher({
               </div>
             ) : (
               savedConnections.map((conn) => {
-                const isCurrentConnection =
-                  conn.connectionString.includes(currentDatabase);
+                const isCurrent = isCurrentConnection(conn.connectionString);
                 return (
                   <button
                     key={conn.name}
                     onClick={() =>
-                      !isCurrentConnection &&
-                      handleConnect(conn.connectionString)
+                      !isCurrent && handleConnect(conn.connectionString)
                     }
-                    disabled={connectMutation.isPending}
+                    disabled={
+                      connectMutation.isPending || disconnectMutation.isPending
+                    }
                     className={`
                       w-full flex items-center gap-3 px-3 py-2 rounded-lg text-left
                       ${
-                        isCurrentConnection
+                        isCurrent
                           ? 'bg-yellow-100 dark:bg-yellow-900/30'
                           : 'hover:bg-gray-100 dark:hover:bg-gray-800'
                       }
-                      ${connectMutation.isPending ? 'opacity-50 cursor-wait' : ''}
+                      ${connectMutation.isPending || disconnectMutation.isPending ? 'opacity-50 cursor-wait' : ''}
                     `}
                   >
-                    {isCurrentConnection ? (
+                    {isCurrent ? (
                       <Check className="h-4 w-4 text-green-500 flex-shrink-0" />
                     ) : (
                       <div className="w-4 h-4 flex-shrink-0" />
@@ -118,7 +140,7 @@ export function ConnectionSwitcher({
                         }
                       </div>
                     </div>
-                    {isCurrentConnection && (
+                    {isCurrent && (
                       <span className="text-xs text-green-600 dark:text-green-400">
                         Connected
                       </span>
