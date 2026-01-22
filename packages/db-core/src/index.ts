@@ -27,7 +27,13 @@ export type {
 } from './connection';
 
 // Shared types and utilities
-export { ErrorCodes, createError } from './shared/errors';
+export {
+  ErrorCodes,
+  createError,
+  isSchemaError,
+  getSchemaErrorDescription,
+  PG_SCHEMA_ERROR_CODES,
+} from './shared/errors';
 export type { DbError, ErrorCode } from './shared/errors';
 export { getPool, isConnected } from './shared/pool';
 
@@ -82,6 +88,7 @@ export {
   createRow,
   updateRow,
   deleteRow,
+  saveBatch,
   getPrimaryKeyColumns,
   generateSelectSQL,
 } from './table';
@@ -92,6 +99,7 @@ export type {
   GetRowResult,
   MutationResult,
   DeleteResult,
+  BatchSaveResult,
   RowData,
   PrimaryKey,
   Filter,

@@ -37,6 +37,9 @@ export function ConnectionForm({
     }
   }, [initialConnectionString]);
 
+  const { data: connectionStatus } = trpc.connection.status.useQuery();
+  const disconnectMutation = trpc.connection.disconnect.useMutation();
+
   const testMutation = trpc.connection.test.useMutation({
     onSuccess: (data) => {
       if (data.success) {
@@ -86,6 +89,12 @@ export function ConnectionForm({
       return;
     }
 
+    // Disconnect from current connection first if connected
+    if (connectionStatus?.connected) {
+      await disconnectMutation.mutateAsync();
+      utils.connection.status.invalidate();
+    }
+
     // Save connection first if checkbox is checked
     if (saveConnection && connectionName.trim()) {
       try {
@@ -104,7 +113,8 @@ export function ConnectionForm({
   const isLoading =
     testMutation.isPending ||
     connectMutation.isPending ||
-    saveConnectionMutation.isPending;
+    saveConnectionMutation.isPending ||
+    disconnectMutation.isPending;
 
   return (
     <Card className="w-full max-w-xl">

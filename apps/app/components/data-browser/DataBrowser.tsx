@@ -3,12 +3,14 @@
 import { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { trpc } from '@/lib/trpc/client';
+import { useToast } from '@cloak-db/ui/components/toast';
 import type { ColumnInfo, Filter } from '@/lib/db-types';
+import { validateCellValue, mapPgErrorToValidation } from '@/lib/validation';
+import { isSchemaError } from '@cloak-db/db-core/errors';
 import { DataGrid } from './DataGrid';
 import { Pagination } from './Pagination';
 import { FilterBar } from './FilterBar';
 import { ActionToolbar } from './ActionToolbar';
-import { PendingChangesBar } from './PendingChangesBar';
 import { UnsavedChangesModal } from './UnsavedChangesModal';
 import { RowDetailModal } from './RowDetailModal';
 import { DeleteConfirmDialog } from './DeleteConfirmDialog';
@@ -18,7 +20,9 @@ import {
   useNavigationGuard,
   useRowSelection,
   useCellSelection,
+  useSchemaRecovery,
 } from './hooks';
+import { SchemaRecoveryModal } from './SchemaRecoveryModal';
 import { Database } from 'lucide-react';
 import { fuzzySearchRows } from '@/lib/fuzzy-search';
 
@@ -45,6 +49,7 @@ export function DataBrowser({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const utils = trpc.useUtils();
+  const { success: toastSuccess, error: toastError } = useToast();
 
   // Parse URL params
   const currentPage = Number(searchParams.get('page')) || 1;
@@ -109,6 +114,76 @@ export function DataBrowser({
     isDirty: pendingChanges.state.isDirty,
   });
 
+  // Schema recovery - detect and recover from schema changes (e.g., after migrations)
+  const handleRefreshSchema = useCallback(async () => {
+    // Invalidate both schema and data caches to get fresh data
+    await Promise.all([
+      utils.schema.getColumns.invalidate({ schema, table }),
+      utils.table.getRows.invalidate({ schema, table }),
+    ]);
+  }, [utils.schema.getColumns, utils.table.getRows, schema, table]);
+
+  const schemaRecovery = useSchemaRecovery({
+    schema,
+    table,
+    columns,
+    pendingChanges: pendingChanges.state,
+    onRefreshSchema: handleRefreshSchema,
+    // onRetry is not provided - user will retry manually after refresh
+  });
+
+  // Proactive schema drift detection - detect when columns change while there are pending edits
+  const prevColumnsRef = useRef<ColumnInfo[]>(columns);
+  useEffect(() => {
+    const prevColumns = prevColumnsRef.current;
+    prevColumnsRef.current = columns;
+
+    // Skip if no pending changes or if this is the initial render
+    if (!pendingChanges.state.isDirty || prevColumns === columns) {
+      return;
+    }
+
+    // Check if any edited columns were removed or changed type
+    const prevColumnMap = new Map(prevColumns.map((c) => [c.name, c]));
+    const newColumnMap = new Map(columns.map((c) => [c.name, c]));
+
+    // Get all columns that have pending edits
+    const editedColumns = new Set<string>();
+    pendingChanges.state.changes.forEach((rowChanges) => {
+      rowChanges.changes.forEach((cellChange) => {
+        editedColumns.add(cellChange.column);
+      });
+    });
+
+    // Check if any edited column was removed or changed type
+    let hasDrift = false;
+    for (const colName of editedColumns) {
+      const prevCol = prevColumnMap.get(colName);
+      const newCol = newColumnMap.get(colName);
+
+      if (prevCol && !newCol) {
+        // Column was removed
+        hasDrift = true;
+        break;
+      }
+      if (prevCol && newCol && prevCol.type !== newCol.type) {
+        // Column type changed
+        hasDrift = true;
+        break;
+      }
+    }
+
+    if (hasDrift) {
+      // Trigger recovery modal with a synthetic "schema changed" message
+      schemaRecovery.triggerRecovery('SCHEMA_DRIFT');
+    }
+  }, [
+    columns,
+    pendingChanges.state.isDirty,
+    pendingChanges.state.changes,
+    schemaRecovery,
+  ]);
+
   // Notify parent of unsaved changes
   useEffect(() => {
     onHasChanges?.(pendingChanges.state.isDirty);
@@ -136,6 +211,7 @@ export function DataBrowser({
   const updateRowMutation = trpc.table.updateRow.useMutation();
   const createRowMutation = trpc.table.createRow.useMutation();
   const deleteRowMutation = trpc.table.deleteRow.useMutation();
+  const saveBatchMutation = trpc.table.saveBatch.useMutation();
 
   const totalPages = Math.ceil((data?.totalCount ?? 0) / pageSize);
 
@@ -248,14 +324,18 @@ export function DataBrowser({
   );
 
   // Copy cell value to clipboard
-  const copyCellValue = useCallback(async (value: unknown) => {
-    const text = value === null ? '' : String(value);
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.error('Failed to copy:', err);
-    }
-  }, []);
+  const copyCellValue = useCallback(
+    async (value: unknown) => {
+      const text = value === null ? '' : String(value);
+      try {
+        await navigator.clipboard.writeText(text);
+        toastSuccess('Copied to clipboard', 2000);
+      } catch (err) {
+        console.error('Failed to copy:', err);
+      }
+    },
+    [toastSuccess],
+  );
 
   // Copy selected cells to clipboard
   const copySelectedCells = useCallback(async () => {
@@ -284,10 +364,17 @@ export function DataBrowser({
     const text = values.join(', ');
     try {
       await navigator.clipboard.writeText(text);
+      const count = values.length;
+      toastSuccess(
+        count === 1
+          ? 'Copied to clipboard'
+          : `Copied ${count} values to clipboard`,
+        2000,
+      );
     } catch (err) {
       console.error('Failed to copy:', err);
     }
-  }, [cellSelection, getRowDataFromKey, pendingChanges]);
+  }, [cellSelection, getRowDataFromKey, pendingChanges, toastSuccess]);
 
   // Handle cell selection
   const handleCellSelect = useCallback(
@@ -328,7 +415,7 @@ export function DataBrowser({
     setLivePreviewValue(value);
   }, []);
 
-  // Handle cell change - apply to all selected cells
+  // Handle cell change - apply to all selected cells with validation
   const handleCellChange = useCallback(
     (
       rowKey: string,
@@ -337,6 +424,20 @@ export function DataBrowser({
       originalValue: unknown,
       newValue: unknown,
     ) => {
+      // Find the column info for validation
+      const columnInfo = columns.find((c) => c.name === column);
+
+      // Validate the new value
+      let validationError = undefined;
+      if (columnInfo) {
+        const validationResult = validateCellValue(columnInfo, newValue);
+        if (!validationResult.valid && validationResult.error) {
+          validationError = validationResult.error;
+          // Show toast for validation error
+          toastError(validationResult.error.message, 3000);
+        }
+      }
+
       // Get all rows to update from cell selection
       const selectedRowKeys = cellSelection.getSelectedRowKeys();
 
@@ -347,11 +448,16 @@ export function DataBrowser({
           ? selectedRowKeys
           : [rowKey];
 
-      // Apply change to all rows
+      // Apply change to all rows (with validation error if any)
       rowsToUpdate.forEach((key) => {
         if (key.startsWith('new:')) {
           const tempId = key.replace('new:', '');
-          pendingChanges.updateNewRow(tempId, column, newValue);
+          pendingChanges.updateNewRow(
+            tempId,
+            column,
+            newValue,
+            validationError,
+          );
         } else {
           const rowData = getRowDataFromKey(key);
           if (rowData) {
@@ -363,6 +469,12 @@ export function DataBrowser({
               currentValue,
               newValue,
             );
+            // Set or clear error for this cell
+            if (validationError) {
+              pendingChanges.setCellError(key, column, validationError);
+            } else {
+              pendingChanges.clearCellError(key, column);
+            }
           }
         }
       });
@@ -372,7 +484,7 @@ export function DataBrowser({
       setLivePreviewValue(undefined);
       setSaveError(null);
     },
-    [pendingChanges, cellSelection, getRowDataFromKey],
+    [pendingChanges, cellSelection, getRowDataFromKey, columns, toastError],
   );
 
   // Handle expand cell (open row detail modal)
@@ -577,50 +689,114 @@ export function DataBrowser({
     [pendingChanges.state.changes],
   );
 
-  // Save all pending changes
+  // Save all pending changes atomically
   const handleSave = useCallback(async () => {
+    // Check for validation errors first
+    if (pendingChanges.hasValidationErrors()) {
+      const errorCount = pendingChanges.state.errorCount;
+      toastError(
+        `Cannot save: ${errorCount} cell${errorCount > 1 ? 's have' : ' has'} validation errors`,
+        4000,
+      );
+      return;
+    }
+
     setIsSaving(true);
     setSaveError(null);
 
     try {
       const { creates, updates } = pendingChanges.getChangesForSave();
 
-      // Process creates
-      for (const { data: rowData } of creates) {
-        await createRowMutation.mutateAsync({
-          schema,
-          table,
-          data: rowData,
-        });
-      }
+      // Use atomic batch save
+      const result = await saveBatchMutation.mutateAsync({
+        schema,
+        table,
+        creates: creates.map((c) => c.data),
+        updates,
+      });
 
-      // Process updates
-      for (const { primaryKey, data: updateData } of updates) {
-        await updateRowMutation.mutateAsync({
-          schema,
-          table,
-          primaryKey,
-          data: updateData,
-        });
+      if (!result.success) {
+        // Check if this is a schema mismatch error (e.g., column deleted after migration)
+        if (isSchemaError(result.errorCode)) {
+          schemaRecovery.triggerRecovery(result.errorCode);
+          setIsSaving(false);
+          return;
+        }
+
+        // Map the PostgreSQL error to a validation error
+        const validationError = mapPgErrorToValidation(
+          result.errorCode ?? '',
+          result.error ?? 'Database error',
+          result.errorDetail,
+        );
+
+        // Try to identify which row/cell failed
+        if (result.failedType && result.failedIndex !== undefined) {
+          const failedIndex = result.failedIndex;
+
+          if (result.failedType === 'create' && failedIndex < creates.length) {
+            // Error in a new row
+            const failedCreate = creates[failedIndex];
+            const rowKey = `new:${failedCreate.tempId}`;
+            const failedColumn = result.failedColumn;
+
+            if (failedColumn) {
+              pendingChanges.setCellError(
+                rowKey,
+                failedColumn,
+                validationError,
+              );
+            }
+          } else if (
+            result.failedType === 'update' &&
+            failedIndex < updates.length
+          ) {
+            // Error in an existing row update - find the row key
+            const failedUpdate = updates[failedIndex];
+            const failedColumn = result.failedColumn;
+
+            // Find the row key from the primary key
+            const rowKey = primaryKeyColumns
+              .map((col) => `${col}:${String(failedUpdate.primaryKey[col])}`)
+              .join('|');
+
+            if (failedColumn) {
+              pendingChanges.setCellError(
+                rowKey,
+                failedColumn,
+                validationError,
+              );
+            }
+          }
+        }
+
+        toastError(`Save failed: ${validationError.message}`, 4000);
+        setSaveError(validationError.message);
+        return;
       }
 
       // Clear pending changes and refresh data
       pendingChanges.markSaved();
       await utils.table.getRows.invalidate({ schema, table });
+      toastSuccess('Changes saved successfully', 2000);
     } catch (err) {
-      setSaveError(
-        err instanceof Error ? err.message : 'Failed to save changes',
-      );
+      const errorMessage =
+        err instanceof Error ? err.message : 'Failed to save changes';
+      setSaveError(errorMessage);
+      toastError(errorMessage, 4000);
     } finally {
       setIsSaving(false);
     }
   }, [
     pendingChanges,
-    createRowMutation,
-    updateRowMutation,
+    saveBatchMutation,
     schema,
     table,
     utils.table.getRows,
+    primaryKeyColumns,
+    toastError,
+    toastSuccess,
+    schemaRecovery,
   ]);
 
   // Discard all pending changes
@@ -628,6 +804,45 @@ export function DataBrowser({
     pendingChanges.discardAll();
     setSaveError(null);
   }, [pendingChanges]);
+
+  // Save a single cell change
+  const handleSaveCellChange = useCallback(
+    async (rowKey: string, column: string) => {
+      const cellChange = pendingChanges.getCellChangeForSave(rowKey, column);
+      if (!cellChange) return;
+
+      setIsSaving(true);
+      setSaveError(null);
+
+      try {
+        await updateRowMutation.mutateAsync({
+          schema,
+          table,
+          primaryKey: cellChange.primaryKey,
+          data: cellChange.data,
+        });
+
+        // Mark this cell as saved
+        pendingChanges.markCellSaved(rowKey, column);
+        await utils.table.getRows.invalidate({ schema, table });
+      } catch (err) {
+        setSaveError(
+          err instanceof Error ? err.message : 'Failed to save change',
+        );
+      } finally {
+        setIsSaving(false);
+      }
+    },
+    [pendingChanges, updateRowMutation, schema, table, utils.table.getRows],
+  );
+
+  // Discard a single cell change
+  const handleDiscardCellChange = useCallback(
+    (rowKey: string, column: string) => {
+      pendingChanges.discardCellChange(rowKey, column);
+    },
+    [pendingChanges],
+  );
 
   // Refs for keyboard handler to avoid re-attaching listeners
   const keyboardStateRef = useRef({
@@ -757,23 +972,20 @@ export function DataBrowser({
 
   return (
     <div className="flex flex-col h-full bg-gray-50 dark:bg-slate-900">
-      {/* Pending Changes Bar */}
-      <PendingChangesBar
-        changeCount={pendingChanges.state.changeCount}
-        rowCount={pendingChanges.state.rowCount}
-        newRowCount={pendingChanges.state.newRowCount}
-        isSaving={isSaving}
-        saveError={saveError}
-        onSave={handleSave}
-        onDiscard={handleDiscard}
-      />
-
-      {/* Action Toolbar */}
+      {/* Action Toolbar (includes pending changes indicator) */}
       <ActionToolbar
         onNewRow={handleNewRow}
         selectedCount={rowSelection.selectedCount}
         onDeleteSelected={handleDeleteSelectedRequest}
         hasUnsavedChanges={pendingChanges.state.isDirty}
+        changeCount={pendingChanges.state.changeCount}
+        rowCount={pendingChanges.state.rowCount}
+        newRowCount={pendingChanges.state.newRowCount}
+        errorCount={pendingChanges.state.errorCount}
+        isSaving={isSaving}
+        saveError={saveError}
+        onSave={handleSave}
+        onDiscard={handleDiscard}
       />
 
       {/* Filter Bar */}
@@ -803,6 +1015,7 @@ export function DataBrowser({
         editingEnabled={true}
         hasCellChange={pendingChanges.hasCellChange}
         getCellValue={pendingChanges.getCellValue}
+        getCellError={pendingChanges.getCellError}
         onCellChange={handleCellChange}
         onExpandCell={handleExpandCell}
         newRows={pendingChanges.getNewRows()}
@@ -827,6 +1040,12 @@ export function DataBrowser({
         onDuplicateRow={handleDuplicateRow}
         onDeleteRow={handleDeleteRowRequest}
         canDeleteRow={canDeleteRow}
+        // Copy feedback
+        onCopySuccess={() => toastSuccess('Copied to clipboard', 2000)}
+        // Cell-specific pending change operations (for context menu)
+        onSaveCellChange={handleSaveCellChange}
+        onDiscardCellChange={handleDiscardCellChange}
+        isSaving={isSaving}
       />
 
       {/* Pagination */}
@@ -886,6 +1105,16 @@ export function DataBrowser({
       <KeyboardShortcutsModal
         isOpen={showShortcutsModal}
         onClose={() => setShowShortcutsModal(false)}
+      />
+
+      {/* Schema Recovery Modal */}
+      <SchemaRecoveryModal
+        isOpen={schemaRecovery.state.isOpen}
+        errorDescription={schemaRecovery.state.errorDescription}
+        pendingEdits={schemaRecovery.state.pendingEdits}
+        onRefresh={schemaRecovery.handleRefresh}
+        onCancel={schemaRecovery.handleCancel}
+        isRefreshing={schemaRecovery.state.isRefreshing}
       />
     </div>
   );

@@ -48,6 +48,8 @@ function getShortcutGroups(isMac: boolean): ShortcutGroup[] {
     {
       title: 'Tabs',
       shortcuts: [
+        { keys: ['Tab'], description: 'Next tab' },
+        { keys: [keys.shift.label, 'Tab'], description: 'Previous tab' },
         { keys: [keys.mod.label, 'E'], description: 'Search and open table' },
         { keys: [keys.mod.label, 'J'], description: 'New query tab' },
         { keys: ['W'], description: 'Close active tab' },

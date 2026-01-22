@@ -24,6 +24,8 @@ export function SavedConnections({ onSelect }: SavedConnectionsProps) {
   const config = trpc.config.get.useQuery();
   const { data: connectionStatus } = trpc.connection.status.useQuery();
 
+  const disconnectMutation = trpc.connection.disconnect.useMutation();
+
   const connectMutation = trpc.connection.connect.useMutation({
     onSuccess: (data) => {
       if (data.success) {
@@ -62,7 +64,12 @@ export function SavedConnections({ onSelect }: SavedConnectionsProps) {
   const connections = config.data?.connections ?? [];
   const hasConnections = !config.isLoading && connections.length > 0;
 
-  const handleConnect = (connectionString: string) => {
+  const handleConnect = async (connectionString: string) => {
+    // Disconnect from current connection first if connected
+    if (connectionStatus?.connected) {
+      await disconnectMutation.mutateAsync();
+      utils.connection.status.invalidate();
+    }
     connectMutation.mutate({ connectionString });
   };
 

@@ -15,6 +15,9 @@ import { CommandPalette } from '@/components/command-palette';
 import { ConnectionSwitcher } from '@/components/connection-switcher';
 import { Spinner } from '@cloak-db/ui/components/spinner';
 import { Database, Home, Settings } from 'lucide-react';
+import { DevProviderWrapper } from '@/lib/dev/DevProviderWrapper';
+import { DevTools } from '@/components/dev/DevTools';
+import { DevTrigger } from '@/components/dev/DevTrigger';
 
 export default function StudioLayout({
   children,
@@ -62,15 +65,18 @@ export default function StudioLayout({
   }
 
   return (
-    <SchemaProvider defaultSchema="public">
-      <TabsProvider>
-        <StudioContent
-          database={status.database ?? ''}
-          host={status.host ?? ''}
-          port={status.port ?? 5432}
-        />
-      </TabsProvider>
-    </SchemaProvider>
+    <DevProviderWrapper>
+      <SchemaProvider defaultSchema="public">
+        <TabsProvider>
+          <StudioContent
+            database={status.database ?? ''}
+            host={status.host ?? ''}
+            port={status.port ?? 5432}
+          />
+          <DevTools />
+        </TabsProvider>
+      </SchemaProvider>
+    </DevProviderWrapper>
   );
 }
 
@@ -82,7 +88,14 @@ interface StudioContentProps {
 }
 
 function StudioContent({ database, host, port }: StudioContentProps) {
-  const { tabs, activeTabId, closeTab, openTab } = useTabs();
+  const {
+    tabs,
+    activeTabId,
+    closeTab,
+    openTab,
+    navigateToNextTab,
+    navigateToPrevTab,
+  } = useTabs();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Keyboard shortcuts
@@ -93,6 +106,24 @@ function StudioContent({ database, host, port }: StudioContentProps) {
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
         document.activeElement?.getAttribute('contenteditable') === 'true';
+
+      // Tab / Shift+Tab - Navigate between tabs (only when not typing)
+      if (
+        e.key === 'Tab' &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !isTyping
+      ) {
+        if (tabs.length > 0) {
+          e.preventDefault();
+          if (e.shiftKey) {
+            navigateToPrevTab();
+          } else {
+            navigateToNextTab();
+          }
+        }
+      }
 
       // W - Close active tab (only when not typing)
       if (e.key === 'w' && !e.metaKey && !e.ctrlKey && !e.altKey && !isTyping) {
@@ -117,7 +148,14 @@ function StudioContent({ database, host, port }: StudioContentProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activeTabId, closeTab, openTab]);
+  }, [
+    activeTabId,
+    closeTab,
+    openTab,
+    tabs.length,
+    navigateToNextTab,
+    navigateToPrevTab,
+  ]);
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">
@@ -143,6 +181,7 @@ function StudioContent({ database, host, port }: StudioContentProps) {
           </div>
 
           <div className="flex items-center gap-2">
+            <DevTrigger />
             {/* Keyboard shortcut hint */}
             <button
               onClick={() => setIsCommandPaletteOpen(true)}

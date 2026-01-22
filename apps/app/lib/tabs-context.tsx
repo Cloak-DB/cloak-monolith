@@ -30,6 +30,9 @@ interface TabsContextValue {
   setActiveTab: (id: string) => void;
   setTabHasChanges: (id: string, hasChanges: boolean) => void;
   getTabById: (id: string) => Tab | undefined;
+  // Tab navigation
+  navigateToNextTab: () => void;
+  navigateToPrevTab: () => void;
   // For close confirmation dialog
   pendingCloseTabId: string | null;
   setPendingCloseTabId: (id: string | null) => void;
@@ -233,6 +236,28 @@ export function TabsProvider({ children }: TabsProviderProps) {
     [tabs],
   );
 
+  const navigateToNextTab = useCallback(() => {
+    if (tabs.length === 0) return;
+    if (!activeTabId) {
+      setActiveTabId(tabs[0].id);
+      return;
+    }
+    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
+    const nextIndex = (currentIndex + 1) % tabs.length;
+    setActiveTabId(tabs[nextIndex].id);
+  }, [tabs, activeTabId]);
+
+  const navigateToPrevTab = useCallback(() => {
+    if (tabs.length === 0) return;
+    if (!activeTabId) {
+      setActiveTabId(tabs[tabs.length - 1].id);
+      return;
+    }
+    const currentIndex = tabs.findIndex((t) => t.id === activeTabId);
+    const prevIndex = (currentIndex - 1 + tabs.length) % tabs.length;
+    setActiveTabId(tabs[prevIndex].id);
+  }, [tabs, activeTabId]);
+
   const value: TabsContextValue = {
     tabs,
     activeTabId,
@@ -241,6 +266,8 @@ export function TabsProvider({ children }: TabsProviderProps) {
     setActiveTab: setTabActiveById,
     setTabHasChanges,
     getTabById,
+    navigateToNextTab,
+    navigateToPrevTab,
     pendingCloseTabId,
     setPendingCloseTabId,
     confirmCloseTab,

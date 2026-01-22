@@ -2,10 +2,19 @@
 
 import { useState, useCallback } from 'react';
 import type { ColumnInfo } from '@/lib/db-types';
-import { ChevronUp, ChevronDown } from 'lucide-react';
+import type { ValidationError } from '@/lib/validation';
+import { ChevronUp, ChevronDown, Inbox } from 'lucide-react';
+import { Skeleton } from '@cloak-db/ui/components/skeleton';
 import { EditableCell } from './cells';
 import { RowContextMenu } from './RowContextMenu';
 import type { SelectionModifiers } from './hooks';
+import { useDevOverrides } from '@/lib/dev/use-dev-overrides';
+import {
+  SKELETON_ROWS,
+  CELL_CLASSES,
+  ROW_NUMBER_CLASSES,
+  getSkeletonWidthPercent,
+} from './constants';
 
 interface CellSelectionModifiers {
   metaKey: boolean;
@@ -24,6 +33,10 @@ interface DataGridProps {
   editingEnabled?: boolean;
   hasCellChange?: (rowKey: string, column: string) => boolean;
   getCellValue?: (rowKey: string, column: string) => unknown | undefined;
+  getCellError?: (
+    rowKey: string,
+    column: string,
+  ) => ValidationError | undefined;
   onCellChange?: (
     rowKey: string,
     primaryKey: Record<string, unknown>,
@@ -67,6 +80,12 @@ interface DataGridProps {
   onDuplicateRow?: (row: Record<string, unknown>) => void;
   onDeleteRow?: (rowKey: string, row: Record<string, unknown>) => void;
   canDeleteRow?: (rowKey: string) => boolean;
+  // Copy feedback callback
+  onCopySuccess?: () => void;
+  // Cell-specific pending change operations (for context menu)
+  onSaveCellChange?: (rowKey: string, column: string) => void;
+  onDiscardCellChange?: (rowKey: string, column: string) => void;
+  isSaving?: boolean;
 }
 
 function formatCellValue(value: unknown, type: string): React.ReactNode {
@@ -155,6 +174,7 @@ export function DataGrid({
   editingEnabled = false,
   hasCellChange,
   getCellValue,
+  getCellError,
   onCellChange,
   onExpandCell,
   newRows = [],
@@ -176,7 +196,15 @@ export function DataGrid({
   onDuplicateRow,
   onDeleteRow,
   canDeleteRow,
+  onCopySuccess,
+  onSaveCellChange,
+  onDiscardCellChange,
+  isSaving,
 }: DataGridProps) {
+  // Dev overrides for testing loading states
+  const { isForceLoading } = useDevOverrides();
+  const effectiveIsLoading = isLoading || isForceLoading;
+
   // Context menu state
   const [contextMenu, setContextMenu] = useState<{
     rowKey: string;
@@ -257,11 +285,16 @@ export function DataGrid({
           : typeof contextMenu?.cellValue === 'object'
             ? JSON.stringify(contextMenu?.cellValue)
             : String(contextMenu?.cellValue ?? '');
-      navigator.clipboard.writeText(textValue).catch(() => {
-        // Ignore clipboard errors
-      });
+      navigator.clipboard
+        .writeText(textValue)
+        .then(() => {
+          onCopySuccess?.();
+        })
+        .catch(() => {
+          // Ignore clipboard errors
+        });
     }
-  }, [contextMenu]);
+  }, [contextMenu, onCopySuccess]);
 
   const handleCut = useCallback(() => {
     if (contextMenu && contextMenu.cellColumn !== null) {
@@ -273,7 +306,12 @@ export function DataGrid({
           : typeof contextMenu.cellValue === 'object'
             ? JSON.stringify(contextMenu.cellValue)
             : String(contextMenu.cellValue ?? '');
-      navigator.clipboard.writeText(textValue).catch(() => {});
+      navigator.clipboard
+        .writeText(textValue)
+        .then(() => {
+          onCopySuccess?.();
+        })
+        .catch(() => {});
 
       // Then set to null
       const isNewRow = contextMenu.rowKey.startsWith('new:');
@@ -288,7 +326,7 @@ export function DataGrid({
         null,
       );
     }
-  }, [contextMenu, primaryKeyColumns, onCellChange]);
+  }, [contextMenu, primaryKeyColumns, onCellChange, onCopySuccess]);
 
   const handlePaste = useCallback(() => {
     if (
@@ -322,6 +360,22 @@ export function DataGrid({
         contextMenu.cellColumn,
         contextMenu.row[contextMenu.cellColumn],
         null,
+      );
+    }
+  }, [contextMenu, primaryKeyColumns, onCellChange]);
+
+  const handleSetEmptyString = useCallback(() => {
+    if (contextMenu && contextMenu.cellColumn !== null) {
+      const isNewRow = contextMenu.rowKey.startsWith('new:');
+      const pk = isNewRow
+        ? {}
+        : getPrimaryKey(contextMenu.row, primaryKeyColumns);
+      onCellChange?.(
+        contextMenu.rowKey,
+        pk,
+        contextMenu.cellColumn,
+        contextMenu.row[contextMenu.cellColumn],
+        '',
       );
     }
   }, [contextMenu, primaryKeyColumns, onCellChange]);
@@ -362,6 +416,7 @@ export function DataGrid({
     const displayValue =
       pendingValue !== undefined ? pendingValue : originalValue;
     const isModified = hasCellChange?.(rowKey, column.name) ?? false;
+    const validationError = getCellError?.(rowKey, column.name);
     const isEditable = isColumnEditable(column);
 
     // Cell selection state
@@ -395,6 +450,7 @@ export function DataGrid({
           displayValue={formatCellValue(displayValue, column.udtName)}
           isModified={isModified}
           isEditable={isEditable}
+          validationError={validationError}
           isSelected={isCellSelected}
           previewValue={showPreview ? livePreviewValue : undefined}
           previewDisplayValue={previewDisplayValue}
@@ -469,9 +525,70 @@ export function DataGrid({
       className="overflow-auto flex-1 relative"
       onClick={handleContainerClick}
     >
-      {isLoading && (
-        <div className="absolute inset-0 bg-white/50 dark:bg-slate-900/50 flex items-center justify-center z-10">
-          <div className="text-gray-500 dark:text-slate-400">Loading...</div>
+      {effectiveIsLoading && (
+        <div className="absolute inset-0 bg-white/90 dark:bg-slate-900/90 z-10">
+          <table className="w-full text-sm">
+            {/* Skeleton header - matches actual header structure */}
+            <thead className="sticky top-0 bg-gray-100 dark:bg-slate-800">
+              <tr className="border-b border-gray-200 dark:border-slate-700">
+                {selectionEnabled && (
+                  <th
+                    className={`${ROW_NUMBER_CLASSES.width} ${ROW_NUMBER_CLASSES.paddingX} ${ROW_NUMBER_CLASSES.paddingY}`}
+                  >
+                    <Skeleton className="h-4 w-6 mx-auto" />
+                  </th>
+                )}
+                {columns.map((col) => (
+                  <th
+                    key={col.name}
+                    className={`text-left ${CELL_CLASSES.paddingX} ${CELL_CLASSES.paddingY}`}
+                  >
+                    <div className="space-y-1">
+                      <Skeleton className="h-4 w-20" />
+                      <Skeleton className="h-3 w-12" />
+                    </div>
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            {/* Skeleton rows - matches actual row structure */}
+            <tbody>
+              {Array.from({ length: SKELETON_ROWS }).map((_, rowIndex) => (
+                <tr
+                  key={rowIndex}
+                  className="border-b border-gray-200 dark:border-slate-800"
+                >
+                  {selectionEnabled && (
+                    <td
+                      className={`${ROW_NUMBER_CLASSES.width} ${ROW_NUMBER_CLASSES.paddingX} ${ROW_NUMBER_CLASSES.paddingY} text-center`}
+                    >
+                      <Skeleton className="h-4 w-6 mx-auto" />
+                    </td>
+                  )}
+                  {columns.map((col) => {
+                    // Width based on column type for realistic skeleton
+                    const widthPercent = getSkeletonWidthPercent(
+                      col.type,
+                      col.maxLength,
+                      rowIndex,
+                    );
+                    return (
+                      <td
+                        key={col.name}
+                        className={`${CELL_CLASSES.paddingX} ${CELL_CLASSES.paddingY} ${CELL_CLASSES.height}`}
+                        style={{ maxWidth: 300 }}
+                      >
+                        <Skeleton
+                          className="h-4"
+                          style={{ width: `${widthPercent}%` }}
+                        />
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))}
+            </tbody>
+          </table>
         </div>
       )}
 
@@ -526,9 +643,20 @@ export function DataGrid({
             <tr>
               <td
                 colSpan={columns.length + (selectionEnabled ? 1 : 0)}
-                className="px-3 py-8 text-center text-gray-500 dark:text-slate-500"
+                className="px-3 py-12 text-center"
               >
-                No rows found
+                <div className="flex flex-col items-center gap-2">
+                  <Inbox
+                    size={32}
+                    className="text-gray-400 dark:text-slate-500"
+                  />
+                  <p className="text-gray-500 dark:text-slate-400 font-medium">
+                    No rows found
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-slate-500">
+                    This table is empty or no rows match your filters
+                  </p>
+                </div>
               </td>
             </tr>
           ) : (
@@ -587,7 +715,30 @@ export function DataGrid({
         onCut={handleCut}
         onPaste={handlePaste}
         onSetNull={handleSetNull}
+        onSetEmptyString={handleSetEmptyString}
         canPaste={clipboard !== undefined}
+        hasCellPendingChange={
+          contextMenu?.cellColumn
+            ? (hasCellChange?.(contextMenu.rowKey, contextMenu.cellColumn) ??
+              false)
+            : false
+        }
+        onSaveCellChange={
+          contextMenu?.cellColumn
+            ? () =>
+                onSaveCellChange?.(contextMenu.rowKey, contextMenu.cellColumn!)
+            : undefined
+        }
+        onDiscardCellChange={
+          contextMenu?.cellColumn
+            ? () =>
+                onDiscardCellChange?.(
+                  contextMenu.rowKey,
+                  contextMenu.cellColumn!,
+                )
+            : undefined
+        }
+        isSaving={isSaving}
       />
     </div>
   );
