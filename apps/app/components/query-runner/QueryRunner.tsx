@@ -17,6 +17,30 @@ import {
 import { Pagination } from '@/components/data-browser/Pagination';
 import { fuzzySearchRows } from '@/lib/fuzzy-search';
 
+/**
+ * Check if a SQL query is a DDL statement that modifies schema
+ * This includes CREATE, ALTER, DROP, TRUNCATE, RENAME operations on tables/columns/indexes
+ */
+function isDDLStatement(sql: string): boolean {
+  // Normalize: remove comments and extra whitespace
+  const normalized = sql
+    .replace(/--.*$/gm, '') // Remove single-line comments
+    .replace(/\/\*[\s\S]*?\*\//g, '') // Remove multi-line comments
+    .trim()
+    .toUpperCase();
+
+  // DDL patterns that affect schema
+  const ddlPatterns = [
+    /^CREATE\s+(TABLE|INDEX|VIEW|SCHEMA|TYPE|EXTENSION)/,
+    /^ALTER\s+(TABLE|INDEX|VIEW|SCHEMA|TYPE)/,
+    /^DROP\s+(TABLE|INDEX|VIEW|SCHEMA|TYPE|EXTENSION)/,
+    /^TRUNCATE\s+/,
+    /^RENAME\s+/,
+  ];
+
+  return ddlPatterns.some((pattern) => pattern.test(normalized));
+}
+
 interface QueryField {
   name: string;
   dataTypeID: number;
@@ -40,6 +64,7 @@ export function QueryRunner() {
   const [error, setError] = useState<string | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const sqlRef = useRef(sql);
+  const utils = trpc.useUtils();
 
   // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
@@ -64,6 +89,14 @@ export function QueryRunner() {
       setSortColumn(null);
       setSortDirection(null);
       setSearchQuery('');
+
+      // If this was a DDL statement, invalidate schema caches
+      const executedSql = sqlRef.current;
+      if (isDDLStatement(executedSql)) {
+        // Invalidate all schema-related queries to refresh sidebar and table views
+        utils.schema.invalidate();
+        utils.table.invalidate();
+      }
     },
     onError: (err) => {
       setError(err.message);

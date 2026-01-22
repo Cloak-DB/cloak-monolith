@@ -15,7 +15,21 @@ function getBaseUrl() {
 }
 
 export function TRPCProvider({ children }: { children: React.ReactNode }) {
-  const [queryClient] = useState(() => new QueryClient());
+  const [queryClient] = useState(
+    () =>
+      new QueryClient({
+        defaultOptions: {
+          queries: {
+            // Refetch when window regains focus (user returns from terminal)
+            refetchOnWindowFocus: true,
+            // Refetch when reconnecting after being offline
+            refetchOnReconnect: true,
+            // Stale time for schema queries - they can go stale quickly during dev
+            staleTime: 0,
+          },
+        },
+      }),
+  );
   const [trpcClient] = useState(() =>
     trpc.createClient({
       links: [

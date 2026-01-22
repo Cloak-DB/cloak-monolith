@@ -395,6 +395,7 @@ export async function createRow(
     return {
       success: false,
       error: error.detail || error.message,
+      errorCode: error.code,
     };
   }
 }
@@ -451,6 +452,7 @@ export async function updateRow(
     return {
       success: false,
       error: error.detail || error.message,
+      errorCode: error.code,
     };
   }
 }
@@ -482,6 +484,7 @@ export async function deleteRow(
     return {
       success: false,
       error: error.detail || error.message,
+      errorCode: error.code,
     };
   }
 }

@@ -14,3 +14,9 @@ export type {
 } from './useRowSelection';
 export { useCellSelection } from './useCellSelection';
 export type { CellKey, UseCellSelectionReturn } from './useCellSelection';
+export { useSchemaRecovery } from './useSchemaRecovery';
+export type {
+  SchemaRecoveryState,
+  UseSchemaRecoveryOptions,
+  UseSchemaRecoveryReturn,
+} from './useSchemaRecovery';

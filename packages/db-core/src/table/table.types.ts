@@ -50,11 +50,15 @@ export interface MutationResult {
   success: boolean;
   row?: RowData;
   error?: string;
+  /** PostgreSQL error code (e.g., '42703' for undefined column) */
+  errorCode?: string;
 }
 
 export interface DeleteResult {
   success: boolean;
   error?: string;
+  /** PostgreSQL error code (e.g., '42P01' for undefined table) */
+  errorCode?: string;
 }
 
 export type PrimaryKey = Record<string, unknown>;

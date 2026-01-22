@@ -88,7 +88,14 @@ interface StudioContentProps {
 }
 
 function StudioContent({ database, host, port }: StudioContentProps) {
-  const { tabs, activeTabId, closeTab, openTab } = useTabs();
+  const {
+    tabs,
+    activeTabId,
+    closeTab,
+    openTab,
+    navigateToNextTab,
+    navigateToPrevTab,
+  } = useTabs();
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Keyboard shortcuts
@@ -99,6 +106,24 @@ function StudioContent({ database, host, port }: StudioContentProps) {
         document.activeElement?.tagName === 'INPUT' ||
         document.activeElement?.tagName === 'TEXTAREA' ||
         document.activeElement?.getAttribute('contenteditable') === 'true';
+
+      // Tab / Shift+Tab - Navigate between tabs (only when not typing)
+      if (
+        e.key === 'Tab' &&
+        !e.metaKey &&
+        !e.ctrlKey &&
+        !e.altKey &&
+        !isTyping
+      ) {
+        if (tabs.length > 0) {
+          e.preventDefault();
+          if (e.shiftKey) {
+            navigateToPrevTab();
+          } else {
+            navigateToNextTab();
+          }
+        }
+      }
 
       // W - Close active tab (only when not typing)
       if (e.key === 'w' && !e.metaKey && !e.ctrlKey && !e.altKey && !isTyping) {
@@ -123,7 +148,14 @@ function StudioContent({ database, host, port }: StudioContentProps) {
 
     document.addEventListener('keydown', handleKeyDown);
     return () => document.removeEventListener('keydown', handleKeyDown);
-  }, [activeTabId, closeTab, openTab]);
+  }, [
+    activeTabId,
+    closeTab,
+    openTab,
+    tabs.length,
+    navigateToNextTab,
+    navigateToPrevTab,
+  ]);
 
   return (
     <div className="flex h-screen bg-gray-50 dark:bg-gray-950">

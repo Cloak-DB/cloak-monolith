@@ -18,7 +18,7 @@ export interface SchemaInfo {
 export interface TableInfo {
   name: string;
   type: string;
-  rowCount: number;
+  rowCount: number | null;
 }
 
 export interface ColumnInfo {
@@ -113,11 +113,16 @@ export async function getTables(
   );
 
   return {
-    tables: result.rows.map((row) => ({
-      name: row.table_name,
-      type: row.table_type,
-      rowCount: row.row_count ? parseInt(row.row_count, 10) : 0,
-    })),
+    tables: result.rows.map((row) => {
+      // reltuples can be -1 for tables that haven't been analyzed yet
+      // Return null for unknown counts to avoid showing misleading data
+      const parsedCount = row.row_count ? parseInt(row.row_count, 10) : null;
+      return {
+        name: row.table_name,
+        type: row.table_type,
+        rowCount: parsedCount !== null && parsedCount >= 0 ? parsedCount : null,
+      };
+    }),
   };
 }
 

@@ -12,7 +12,10 @@ export default function StudioPage() {
   );
 
   const tableCount = data?.tables.length ?? 0;
-  const totalRows = data?.tables.reduce((sum, t) => sum + t.rowCount, 0) ?? 0;
+  const totalRows =
+    data?.tables.reduce((sum, t) => sum + (t.rowCount ?? 0), 0) ?? 0;
+  const hasUnknownCounts =
+    data?.tables.some((t) => t.rowCount === null) ?? false;
 
   return (
     <div className="flex items-center justify-center h-full">
@@ -44,6 +47,7 @@ export default function StudioPage() {
               <ArrowRight size={16} />
               <span>
                 <strong className="text-gray-900 dark:text-white">
+                  {hasUnknownCounts ? '~' : ''}
                   {totalRows.toLocaleString()}
                 </strong>{' '}
                 total rows

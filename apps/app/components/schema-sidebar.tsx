@@ -11,13 +11,14 @@ import { SidebarContextMenu } from './sidebar-context-menu';
 import { Table, Zap, Search, Inbox, SearchX } from 'lucide-react';
 import { useDevOverrides } from '@/lib/dev/use-dev-overrides';
 
-function formatRowCount(count: number): string {
+function formatRowCount(count: number | null): string {
+  if (count === null) return '—';
   return count.toLocaleString();
 }
 
 interface TableListItemProps {
   name: string;
-  rowCount: number;
+  rowCount: number | null;
   isSelected: boolean;
   onClick: () => void;
   onContextMenu: (e: React.MouseEvent) => void;

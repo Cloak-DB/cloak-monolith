@@ -96,6 +96,8 @@ When writing SQL:
 
 | Shortcut | Action |
 |----------|--------|
+| `Tab` | Navigate to next tab (loops) |
+| `Shift+Tab` | Navigate to previous tab (loops) |
 | `W` | Close current tab |
 | `Middle-click` | Close clicked tab |
 

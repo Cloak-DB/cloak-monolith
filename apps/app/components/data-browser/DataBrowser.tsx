@@ -6,6 +6,7 @@ import { trpc } from '@/lib/trpc/client';
 import { useToast } from '@cloak-db/ui/components/toast';
 import type { ColumnInfo, Filter } from '@/lib/db-types';
 import { validateCellValue, mapPgErrorToValidation } from '@/lib/validation';
+import { isSchemaError } from '@cloak-db/db-core/errors';
 import { DataGrid } from './DataGrid';
 import { Pagination } from './Pagination';
 import { FilterBar } from './FilterBar';
@@ -19,7 +20,9 @@ import {
   useNavigationGuard,
   useRowSelection,
   useCellSelection,
+  useSchemaRecovery,
 } from './hooks';
+import { SchemaRecoveryModal } from './SchemaRecoveryModal';
 import { Database } from 'lucide-react';
 import { fuzzySearchRows } from '@/lib/fuzzy-search';
 
@@ -110,6 +113,76 @@ export function DataBrowser({
   const navigationGuard = useNavigationGuard({
     isDirty: pendingChanges.state.isDirty,
   });
+
+  // Schema recovery - detect and recover from schema changes (e.g., after migrations)
+  const handleRefreshSchema = useCallback(async () => {
+    // Invalidate both schema and data caches to get fresh data
+    await Promise.all([
+      utils.schema.getColumns.invalidate({ schema, table }),
+      utils.table.getRows.invalidate({ schema, table }),
+    ]);
+  }, [utils.schema.getColumns, utils.table.getRows, schema, table]);
+
+  const schemaRecovery = useSchemaRecovery({
+    schema,
+    table,
+    columns,
+    pendingChanges: pendingChanges.state,
+    onRefreshSchema: handleRefreshSchema,
+    // onRetry is not provided - user will retry manually after refresh
+  });
+
+  // Proactive schema drift detection - detect when columns change while there are pending edits
+  const prevColumnsRef = useRef<ColumnInfo[]>(columns);
+  useEffect(() => {
+    const prevColumns = prevColumnsRef.current;
+    prevColumnsRef.current = columns;
+
+    // Skip if no pending changes or if this is the initial render
+    if (!pendingChanges.state.isDirty || prevColumns === columns) {
+      return;
+    }
+
+    // Check if any edited columns were removed or changed type
+    const prevColumnMap = new Map(prevColumns.map((c) => [c.name, c]));
+    const newColumnMap = new Map(columns.map((c) => [c.name, c]));
+
+    // Get all columns that have pending edits
+    const editedColumns = new Set<string>();
+    pendingChanges.state.changes.forEach((rowChanges) => {
+      rowChanges.changes.forEach((cellChange) => {
+        editedColumns.add(cellChange.column);
+      });
+    });
+
+    // Check if any edited column was removed or changed type
+    let hasDrift = false;
+    for (const colName of editedColumns) {
+      const prevCol = prevColumnMap.get(colName);
+      const newCol = newColumnMap.get(colName);
+
+      if (prevCol && !newCol) {
+        // Column was removed
+        hasDrift = true;
+        break;
+      }
+      if (prevCol && newCol && prevCol.type !== newCol.type) {
+        // Column type changed
+        hasDrift = true;
+        break;
+      }
+    }
+
+    if (hasDrift) {
+      // Trigger recovery modal with a synthetic "schema changed" message
+      schemaRecovery.triggerRecovery('SCHEMA_DRIFT');
+    }
+  }, [
+    columns,
+    pendingChanges.state.isDirty,
+    pendingChanges.state.changes,
+    schemaRecovery,
+  ]);
 
   // Notify parent of unsaved changes
   useEffect(() => {
@@ -643,6 +716,13 @@ export function DataBrowser({
       });
 
       if (!result.success) {
+        // Check if this is a schema mismatch error (e.g., column deleted after migration)
+        if (isSchemaError(result.errorCode)) {
+          schemaRecovery.triggerRecovery(result.errorCode);
+          setIsSaving(false);
+          return;
+        }
+
         // Map the PostgreSQL error to a validation error
         const validationError = mapPgErrorToValidation(
           result.errorCode ?? '',
@@ -716,6 +796,7 @@ export function DataBrowser({
     primaryKeyColumns,
     toastError,
     toastSuccess,
+    schemaRecovery,
   ]);
 
   // Discard all pending changes
@@ -1024,6 +1105,16 @@ export function DataBrowser({
       <KeyboardShortcutsModal
         isOpen={showShortcutsModal}
         onClose={() => setShowShortcutsModal(false)}
+      />
+
+      {/* Schema Recovery Modal */}
+      <SchemaRecoveryModal
+        isOpen={schemaRecovery.state.isOpen}
+        errorDescription={schemaRecovery.state.errorDescription}
+        pendingEdits={schemaRecovery.state.pendingEdits}
+        onRefresh={schemaRecovery.handleRefresh}
+        onCancel={schemaRecovery.handleCancel}
+        isRefreshing={schemaRecovery.state.isRefreshing}
       />
     </div>
   );

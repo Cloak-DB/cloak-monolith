@@ -14,7 +14,7 @@ interface CommandPaletteProps {
 interface TableItem {
   schema: string;
   table: string;
-  rowCount: number;
+  rowCount: number | null;
 }
 
 export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
@@ -179,7 +179,9 @@ export function CommandPalette({ isOpen, onClose }: CommandPaletteProps) {
                   <span className="font-medium">{table.table}</span>
                 </div>
                 <span className="text-xs text-slate-500">
-                  {table.rowCount.toLocaleString()} rows
+                  {table.rowCount !== null
+                    ? `${table.rowCount.toLocaleString()} rows`
+                    : '— rows'}
                 </span>
               </button>
             ))
