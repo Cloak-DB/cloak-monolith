@@ -11,6 +11,7 @@ interface ActionToolbarProps {
   changeCount: number;
   rowCount: number;
   newRowCount: number;
+  errorCount: number;
   isSaving: boolean;
   saveError?: string | null;
   onSave: () => void;
@@ -25,12 +26,14 @@ export function ActionToolbar({
   changeCount,
   rowCount,
   newRowCount,
+  errorCount,
   isSaving,
   saveError,
   onSave,
   onDiscard,
 }: ActionToolbarProps) {
   const hasPendingChanges = changeCount > 0 || newRowCount > 0;
+  const hasErrors = errorCount > 0;
 
   const getPendingMessage = () => {
     const parts: string[] = [];
@@ -91,12 +94,27 @@ export function ActionToolbar({
             <div className="flex items-center gap-2 text-sm">
               <AlertTriangle
                 size={16}
-                className="text-yellow-600 dark:text-yellow-500"
+                className={
+                  hasErrors
+                    ? 'text-red-500'
+                    : 'text-yellow-600 dark:text-yellow-500'
+                }
               />
-              <span className="text-yellow-800 dark:text-yellow-200">
+              <span
+                className={
+                  hasErrors
+                    ? 'text-red-600 dark:text-red-400'
+                    : 'text-yellow-800 dark:text-yellow-200'
+                }
+              >
                 {getPendingMessage()}
               </span>
-              {saveError && (
+              {hasErrors && (
+                <span className="text-red-500 dark:text-red-400 font-medium">
+                  ({errorCount} error{errorCount > 1 ? 's' : ''})
+                </span>
+              )}
+              {saveError && !hasErrors && (
                 <span className="text-red-500 dark:text-red-400 ml-2">
                   Error: {saveError}
                 </span>
@@ -112,8 +130,17 @@ export function ActionToolbar({
             </button>
             <button
               onClick={onSave}
-              disabled={isSaving}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm bg-yellow-500 hover:bg-yellow-400 text-black font-medium rounded disabled:opacity-50"
+              disabled={isSaving || hasErrors}
+              title={
+                hasErrors
+                  ? `Fix ${errorCount} validation error${errorCount > 1 ? 's' : ''} before saving`
+                  : undefined
+              }
+              className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded disabled:opacity-50 disabled:cursor-not-allowed ${
+                hasErrors
+                  ? 'bg-gray-300 dark:bg-slate-600 text-gray-500 dark:text-slate-400'
+                  : 'bg-yellow-500 hover:bg-yellow-400 text-black'
+              }`}
             >
               {isSaving ? (
                 <>

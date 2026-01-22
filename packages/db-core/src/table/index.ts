@@ -16,6 +16,7 @@ import type {
   PrimaryKey,
   Filter,
   FilterOperator,
+  BatchSaveResult,
 } from './table.types';
 
 export * from './table.types';
@@ -482,5 +483,199 @@ export async function deleteRow(
       success: false,
       error: error.detail || error.message,
     };
+  }
+}
+
+// ============================================================================
+// Batch Operations (Atomic Transactions)
+// ============================================================================
+
+/**
+ * Extract column name from PostgreSQL error
+ */
+function extractColumnFromPgError(
+  error: Error & {
+    code?: string;
+    message?: string;
+    detail?: string;
+    constraint?: string;
+  },
+): string | undefined {
+  // Try to extract from detail like 'Key (email)=(test@example.com) already exists.'
+  const keyMatch = error.detail?.match(/Key \(([^)]+)\)/);
+  if (keyMatch) {
+    return keyMatch[1];
+  }
+
+  // Try to extract from message like 'null value in column "name" violates not-null constraint'
+  const columnMatch = error.message?.match(/column "([^"]+)"/);
+  if (columnMatch) {
+    return columnMatch[1];
+  }
+
+  // Try constraint name patterns
+  if (error.constraint) {
+    // Often constraint names include column name like "users_email_key"
+    const parts = error.constraint.split('_');
+    if (parts.length >= 2) {
+      return parts[parts.length - 2];
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Save multiple rows atomically in a transaction
+ *
+ * All operations succeed or all fail - no partial saves.
+ * This ensures data consistency when saving multiple changes at once.
+ *
+ * @param schema - Database schema name
+ * @param table - Table name
+ * @param creates - Array of new rows to create
+ * @param updates - Array of updates with primary key and data
+ * @returns BatchSaveResult with success/failure info
+ */
+export async function saveBatch(
+  schema: string,
+  table: string,
+  creates: RowData[],
+  updates: Array<{ primaryKey: PrimaryKey; data: RowData }>,
+): Promise<BatchSaveResult> {
+  ensureConnected();
+  const pool = getPool()!;
+  const client = await pool.connect();
+
+  const tableName = `${quoteIdentifier(schema)}.${quoteIdentifier(table)}`;
+
+  try {
+    await client.query('BEGIN');
+
+    // Process creates first
+    for (let i = 0; i < creates.length; i++) {
+      const data = creates[i];
+      const columns = Object.keys(data);
+
+      if (columns.length === 0) {
+        await client.query('ROLLBACK');
+        return {
+          success: false,
+          failedIndex: i,
+          failedType: 'create',
+          error: 'No data provided for new row',
+        };
+      }
+
+      const columnList = columns.map(quoteIdentifier).join(', ');
+      const valuePlaceholders = columns
+        .map((_, idx) => `$${idx + 1}`)
+        .join(', ');
+      const values = columns.map((col) => data[col]);
+
+      const query = `
+        INSERT INTO ${tableName} (${columnList})
+        VALUES (${valuePlaceholders})
+      `;
+
+      try {
+        await client.query(query, values);
+      } catch (err) {
+        await client.query('ROLLBACK');
+        const error = err as Error & {
+          code?: string;
+          detail?: string;
+          constraint?: string;
+        };
+        return {
+          success: false,
+          failedIndex: i,
+          failedType: 'create',
+          failedColumn: extractColumnFromPgError(error),
+          errorCode: error.code,
+          error: error.detail || error.message,
+          errorDetail: error.detail,
+        };
+      }
+    }
+
+    // Process updates
+    for (let i = 0; i < updates.length; i++) {
+      const { primaryKey, data } = updates[i];
+      const columns = Object.keys(data);
+
+      if (columns.length === 0) {
+        await client.query('ROLLBACK');
+        return {
+          success: false,
+          failedIndex: i,
+          failedType: 'update',
+          error: 'No data provided for update',
+        };
+      }
+
+      // Build SET clause
+      const setClause = columns
+        .map((col, idx) => `${quoteIdentifier(col)} = $${idx + 1}`)
+        .join(', ');
+      const setValues = columns.map((col) => data[col]);
+
+      // Build WHERE clause for primary key
+      const { sql: whereClause, values: whereValues } = buildPrimaryKeyClause(
+        primaryKey,
+        columns.length + 1,
+      );
+
+      const query = `
+        UPDATE ${tableName}
+        SET ${setClause}
+        ${whereClause}
+      `;
+
+      try {
+        const result = await client.query(query, [
+          ...setValues,
+          ...whereValues,
+        ]);
+        if (result.rowCount === 0) {
+          await client.query('ROLLBACK');
+          return {
+            success: false,
+            failedIndex: i,
+            failedType: 'update',
+            error: 'Row not found',
+          };
+        }
+      } catch (err) {
+        await client.query('ROLLBACK');
+        const error = err as Error & {
+          code?: string;
+          detail?: string;
+          constraint?: string;
+        };
+        return {
+          success: false,
+          failedIndex: i,
+          failedType: 'update',
+          failedColumn: extractColumnFromPgError(error),
+          errorCode: error.code,
+          error: error.detail || error.message,
+          errorDetail: error.detail,
+        };
+      }
+    }
+
+    await client.query('COMMIT');
+    return { success: true };
+  } catch (err) {
+    await client.query('ROLLBACK');
+    const error = err as Error & { code?: string; detail?: string };
+    return {
+      success: false,
+      error: error.detail || error.message,
+      errorCode: error.code,
+    };
+  } finally {
+    client.release();
   }
 }

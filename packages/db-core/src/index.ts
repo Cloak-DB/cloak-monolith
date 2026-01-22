@@ -82,6 +82,7 @@ export {
   createRow,
   updateRow,
   deleteRow,
+  saveBatch,
   getPrimaryKeyColumns,
   generateSelectSQL,
 } from './table';
@@ -92,6 +93,7 @@ export type {
   GetRowResult,
   MutationResult,
   DeleteResult,
+  BatchSaveResult,
   RowData,
   PrimaryKey,
   Filter,

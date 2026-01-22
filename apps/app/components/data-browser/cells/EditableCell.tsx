@@ -2,6 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import type { ColumnInfo } from '@/lib/db-types';
+import type { ValidationError } from '@/lib/validation';
 import { CellEditor } from './CellEditor';
 
 interface SelectionModifiers {
@@ -35,6 +36,8 @@ interface EditableCellProps {
   displayValue: React.ReactNode;
   isModified: boolean;
   isEditable: boolean;
+  // Validation error (if any)
+  validationError?: ValidationError;
   // Cell selection
   isSelected?: boolean;
   previewValue?: unknown;
@@ -54,6 +57,7 @@ export function EditableCell({
   displayValue,
   isModified,
   isEditable,
+  validationError,
   isSelected,
   previewValue,
   previewDisplayValue,
@@ -163,6 +167,7 @@ export function EditableCell({
   // Determine what to display
   const hasPreview = previewValue !== undefined;
   const showValue = hasPreview ? previewDisplayValue : displayValue;
+  const hasError = !!validationError;
 
   // Build class names
   const baseClasses =
@@ -170,25 +175,44 @@ export function EditableCell({
   const editableClasses = isEditable
     ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50'
     : '';
-  const modifiedClasses = isModified
-    ? 'bg-yellow-100 dark:bg-yellow-900/20'
+  // Error state takes precedence over modified state
+  const stateClasses = hasError
+    ? 'bg-red-100 dark:bg-red-900/20'
+    : isModified
+      ? 'bg-yellow-100 dark:bg-yellow-900/20'
+      : '';
+  const selectedClasses = isSelected
+    ? hasError
+      ? 'ring-2 ring-inset ring-red-500'
+      : 'ring-2 ring-inset ring-yellow-500'
     : '';
-  const selectedClasses = isSelected ? 'ring-2 ring-inset ring-yellow-500' : '';
-  const previewClasses = hasPreview ? 'bg-yellow-50 dark:bg-yellow-900/10' : '';
+  const previewClasses =
+    hasPreview && !hasError ? 'bg-yellow-50 dark:bg-yellow-900/10' : '';
+
+  // Tooltip for error or modified state
+  const tooltipText = hasError
+    ? validationError.message
+    : isModified
+      ? 'Modified'
+      : undefined;
 
   return (
     <div
-      className={`${baseClasses} ${editableClasses} ${modifiedClasses} ${selectedClasses} ${previewClasses}`}
+      className={`${baseClasses} ${editableClasses} ${stateClasses} ${selectedClasses} ${previewClasses}`}
       onClick={handleClick}
       onKeyDown={handleKeyDown}
       tabIndex={isEditable ? 0 : -1}
       role={isEditable ? 'button' : undefined}
+      title={tooltipText}
     >
       <span className="truncate">{showValue}</span>
-      {isModified && !hasPreview && (
+      {/* Show indicator dot: red for error, yellow for modified */}
+      {(hasError || isModified) && !hasPreview && (
         <span
-          className="absolute top-1 right-1 w-2 h-2 bg-yellow-500 rounded-full"
-          title="Modified"
+          className={`absolute top-1 right-1 w-2 h-2 rounded-full ${
+            hasError ? 'bg-red-500' : 'bg-yellow-500'
+          }`}
+          title={tooltipText}
         />
       )}
     </div>

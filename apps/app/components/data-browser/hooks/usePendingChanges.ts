@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useCallback, useMemo } from 'react';
+import type { ValidationError } from '@/lib/validation';
 
 export interface CellChange {
   column: string;
   originalValue: unknown;
   newValue: unknown;
+  error?: ValidationError;
 }
 
 export interface RowChanges {
@@ -22,6 +24,7 @@ export interface PendingChangesState {
   changeCount: number;
   rowCount: number;
   newRowCount: number;
+  errorCount: number;
 }
 
 export interface UsePendingChangesReturn {
@@ -37,11 +40,29 @@ export interface UsePendingChangesReturn {
   getCellValue: (rowKey: string, column: string) => unknown | undefined;
   hasCellChange: (rowKey: string, column: string) => boolean;
   discardCellChange: (rowKey: string, column: string) => void;
+  // Error operations
+  setCellError: (
+    rowKey: string,
+    column: string,
+    error: ValidationError,
+  ) => void;
+  clearCellError: (rowKey: string, column: string) => void;
+  getCellError: (rowKey: string, column: string) => ValidationError | undefined;
+  hasValidationErrors: () => boolean;
   // Row operations
   addNewRow: (tempId: string, data: Record<string, unknown>) => void;
-  updateNewRow: (tempId: string, column: string, value: unknown) => void;
+  updateNewRow: (
+    tempId: string,
+    column: string,
+    value: unknown,
+    error?: ValidationError,
+  ) => void;
   removeNewRow: (tempId: string) => void;
-  getNewRows: () => Array<{ tempId: string; data: Record<string, unknown> }>;
+  getNewRows: () => Array<{
+    tempId: string;
+    data: Record<string, unknown>;
+    errors?: Map<string, ValidationError>;
+  }>;
   // Bulk operations
   discardAll: () => void;
   discardRow: (rowKey: string) => void;
@@ -69,13 +90,22 @@ export function usePendingChanges(): UsePendingChangesReturn {
   const state = useMemo<PendingChangesState>(() => {
     let changeCount = 0;
     let newRowCount = 0;
+    let errorCount = 0;
 
     changes.forEach((rowChanges) => {
       if (rowChanges.type === 'create') {
         newRowCount++;
         changeCount += Object.keys(rowChanges.data).length;
+        // Count errors in new row changes
+        rowChanges.changes.forEach((c) => {
+          if (c.error) errorCount++;
+        });
       } else {
         changeCount += rowChanges.changes.length;
+        // Count errors in update changes
+        rowChanges.changes.forEach((c) => {
+          if (c.error) errorCount++;
+        });
       }
     });
 
@@ -85,6 +115,7 @@ export function usePendingChanges(): UsePendingChangesReturn {
       changeCount,
       rowCount: changes.size,
       newRowCount,
+      errorCount,
     };
   }, [changes]);
 
@@ -200,6 +231,101 @@ export function usePendingChanges(): UsePendingChangesReturn {
     });
   }, []);
 
+  // Error operations
+  const setCellError = useCallback(
+    (rowKey: string, column: string, error: ValidationError) => {
+      setChanges((prev) => {
+        const newChanges = new Map(prev);
+        const existing = newChanges.get(rowKey);
+
+        if (!existing) return prev;
+
+        if (existing.type === 'create') {
+          // For new rows, store errors in the changes array
+          const existingChangeIndex = existing.changes.findIndex(
+            (c) => c.column === column,
+          );
+          const updatedChanges = [...existing.changes];
+
+          if (existingChangeIndex >= 0) {
+            updatedChanges[existingChangeIndex] = {
+              ...updatedChanges[existingChangeIndex],
+              error,
+            };
+          } else {
+            // Add a change entry just for the error
+            updatedChanges.push({
+              column,
+              originalValue: null,
+              newValue: existing.data[column],
+              error,
+            });
+          }
+          newChanges.set(rowKey, { ...existing, changes: updatedChanges });
+        } else if (existing.type === 'update') {
+          const existingChangeIndex = existing.changes.findIndex(
+            (c) => c.column === column,
+          );
+          if (existingChangeIndex >= 0) {
+            const updatedChanges = [...existing.changes];
+            updatedChanges[existingChangeIndex] = {
+              ...updatedChanges[existingChangeIndex],
+              error,
+            };
+            newChanges.set(rowKey, { ...existing, changes: updatedChanges });
+          }
+        }
+
+        return newChanges;
+      });
+    },
+    [],
+  );
+
+  const clearCellError = useCallback((rowKey: string, column: string) => {
+    setChanges((prev) => {
+      const newChanges = new Map(prev);
+      const existing = newChanges.get(rowKey);
+
+      if (!existing) return prev;
+
+      const existingChangeIndex = existing.changes.findIndex(
+        (c) => c.column === column,
+      );
+
+      if (existingChangeIndex >= 0) {
+        const updatedChanges = [...existing.changes];
+        // Remove the error property
+        const { error: _, ...changeWithoutError } =
+          updatedChanges[existingChangeIndex];
+        updatedChanges[existingChangeIndex] = changeWithoutError;
+        newChanges.set(rowKey, { ...existing, changes: updatedChanges });
+      }
+
+      return newChanges;
+    });
+  }, []);
+
+  const getCellError = useCallback(
+    (rowKey: string, column: string): ValidationError | undefined => {
+      const rowChanges = changes.get(rowKey);
+      if (!rowChanges) return undefined;
+
+      const change = rowChanges.changes.find((c) => c.column === column);
+      return change?.error;
+    },
+    [changes],
+  );
+
+  const hasValidationErrors = useCallback((): boolean => {
+    for (const rowChanges of changes.values()) {
+      for (const change of rowChanges.changes) {
+        if (change.error) return true;
+      }
+    }
+    return false;
+  }, [changes]);
+
   const addNewRow = useCallback(
     (tempId: string, data: Record<string, unknown>) => {
       setChanges((prev) => {
@@ -217,16 +343,44 @@ export function usePendingChanges(): UsePendingChangesReturn {
   );
 
   const updateNewRow = useCallback(
-    (tempId: string, column: string, value: unknown) => {
+    (
+      tempId: string,
+      column: string,
+      value: unknown,
+      error?: ValidationError,
+    ) => {
       setChanges((prev) => {
         const newChanges = new Map(prev);
         const key = `new:${tempId}`;
         const existing = newChanges.get(key);
 
         if (existing && existing.type === 'create') {
+          // Update the data
+          const newData = { ...existing.data, [column]: value };
+
+          // Update or add the change entry for this column (for error tracking)
+          const existingChangeIndex = existing.changes.findIndex(
+            (c) => c.column === column,
+          );
+          const updatedChanges = [...existing.changes];
+
+          const changeEntry: CellChange = {
+            column,
+            originalValue: null,
+            newValue: value,
+            error,
+          };
+
+          if (existingChangeIndex >= 0) {
+            updatedChanges[existingChangeIndex] = changeEntry;
+          } else {
+            updatedChanges.push(changeEntry);
+          }
+
           newChanges.set(key, {
             ...existing,
-            data: { ...existing.data, [column]: value },
+            data: newData,
+            changes: updatedChanges,
           });
         }
 
@@ -245,11 +399,25 @@ export function usePendingChanges(): UsePendingChangesReturn {
   }, []);
 
   const getNewRows = useCallback(() => {
-    const newRows: Array<{ tempId: string; data: Record<string, unknown> }> =
-      [];
+    const newRows: Array<{
+      tempId: string;
+      data: Record<string, unknown>;
+      errors?: Map<string, ValidationError>;
+    }> = [];
     changes.forEach((rowChanges) => {
       if (rowChanges.type === 'create' && rowChanges.tempId) {
-        newRows.push({ tempId: rowChanges.tempId, data: rowChanges.data });
+        // Collect errors from changes
+        const errors = new Map<string, ValidationError>();
+        rowChanges.changes.forEach((c) => {
+          if (c.error) {
+            errors.set(c.column, c.error);
+          }
+        });
+        newRows.push({
+          tempId: rowChanges.tempId,
+          data: rowChanges.data,
+          errors: errors.size > 0 ? errors : undefined,
+        });
       }
     });
     return newRows;
@@ -342,6 +510,12 @@ export function usePendingChanges(): UsePendingChangesReturn {
     getCellValue,
     hasCellChange,
     discardCellChange,
+    // Error operations
+    setCellError,
+    clearCellError,
+    getCellError,
+    hasValidationErrors,
+    // Row operations
     addNewRow,
     updateNewRow,
     removeNewRow,

@@ -2,6 +2,7 @@
 
 import { useState, useCallback } from 'react';
 import type { ColumnInfo } from '@/lib/db-types';
+import type { ValidationError } from '@/lib/validation';
 import { ChevronUp, ChevronDown, Inbox } from 'lucide-react';
 import { Skeleton } from '@cloak-db/ui/components/skeleton';
 import { EditableCell } from './cells';
@@ -32,6 +33,10 @@ interface DataGridProps {
   editingEnabled?: boolean;
   hasCellChange?: (rowKey: string, column: string) => boolean;
   getCellValue?: (rowKey: string, column: string) => unknown | undefined;
+  getCellError?: (
+    rowKey: string,
+    column: string,
+  ) => ValidationError | undefined;
   onCellChange?: (
     rowKey: string,
     primaryKey: Record<string, unknown>,
@@ -169,6 +174,7 @@ export function DataGrid({
   editingEnabled = false,
   hasCellChange,
   getCellValue,
+  getCellError,
   onCellChange,
   onExpandCell,
   newRows = [],
@@ -358,6 +364,22 @@ export function DataGrid({
     }
   }, [contextMenu, primaryKeyColumns, onCellChange]);
 
+  const handleSetEmptyString = useCallback(() => {
+    if (contextMenu && contextMenu.cellColumn !== null) {
+      const isNewRow = contextMenu.rowKey.startsWith('new:');
+      const pk = isNewRow
+        ? {}
+        : getPrimaryKey(contextMenu.row, primaryKeyColumns);
+      onCellChange?.(
+        contextMenu.rowKey,
+        pk,
+        contextMenu.cellColumn,
+        contextMenu.row[contextMenu.cellColumn],
+        '',
+      );
+    }
+  }, [contextMenu, primaryKeyColumns, onCellChange]);
+
   const getSortIcon = (columnName: string) => {
     if (orderBy?.column !== columnName) {
       return null;
@@ -394,6 +416,7 @@ export function DataGrid({
     const displayValue =
       pendingValue !== undefined ? pendingValue : originalValue;
     const isModified = hasCellChange?.(rowKey, column.name) ?? false;
+    const validationError = getCellError?.(rowKey, column.name);
     const isEditable = isColumnEditable(column);
 
     // Cell selection state
@@ -427,6 +450,7 @@ export function DataGrid({
           displayValue={formatCellValue(displayValue, column.udtName)}
           isModified={isModified}
           isEditable={isEditable}
+          validationError={validationError}
           isSelected={isCellSelected}
           previewValue={showPreview ? livePreviewValue : undefined}
           previewDisplayValue={previewDisplayValue}
@@ -691,6 +715,7 @@ export function DataGrid({
         onCut={handleCut}
         onPaste={handlePaste}
         onSetNull={handleSetNull}
+        onSetEmptyString={handleSetEmptyString}
         canPaste={clipboard !== undefined}
         hasCellPendingChange={
           contextMenu?.cellColumn

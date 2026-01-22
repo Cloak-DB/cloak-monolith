@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, useLayoutEffect } from 'react';
 import {
   Edit,
   Copy,
@@ -8,6 +8,7 @@ import {
   Scissors,
   Clipboard,
   CircleSlash,
+  FileText,
   Save,
   Undo2,
 } from 'lucide-react';
@@ -27,6 +28,7 @@ interface RowContextMenuProps {
   onCut?: () => void;
   onPaste?: () => void;
   onSetNull?: () => void;
+  onSetEmptyString?: () => void;
   canPaste?: boolean;
   // Cell-specific pending change operations
   hasCellPendingChange?: boolean;
@@ -49,6 +51,7 @@ export function RowContextMenu({
   onCut,
   onPaste,
   onSetNull,
+  onSetEmptyString,
   canPaste,
   hasCellPendingChange,
   onSaveCellChange,
@@ -56,6 +59,44 @@ export function RowContextMenu({
   isSaving,
 }: RowContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const [adjustedPosition, setAdjustedPosition] = useState(position);
+
+  // Measure menu and adjust position to keep it on screen
+  useLayoutEffect(() => {
+    if (!isOpen || !menuRef.current) return;
+
+    const menu = menuRef.current;
+    const menuRect = menu.getBoundingClientRect();
+    const padding = 8; // Keep some padding from edges
+
+    let x = position.x;
+    let y = position.y;
+
+    // Adjust horizontal position if menu goes off right edge
+    if (x + menuRect.width > window.innerWidth - padding) {
+      x = window.innerWidth - menuRect.width - padding;
+    }
+    // Don't let it go off left edge either
+    if (x < padding) {
+      x = padding;
+    }
+
+    // Adjust vertical position if menu goes off bottom edge
+    if (y + menuRect.height > window.innerHeight - padding) {
+      // Try to show above the click point
+      y = position.y - menuRect.height;
+      // If that goes off top, just align to bottom of viewport
+      if (y < padding) {
+        y = window.innerHeight - menuRect.height - padding;
+      }
+    }
+    // Don't let it go off top edge
+    if (y < padding) {
+      y = padding;
+    }
+
+    setAdjustedPosition({ x, y });
+  }, [isOpen, position]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -84,12 +125,6 @@ export function RowContextMenu({
   if (!isOpen) {
     return null;
   }
-
-  // Adjust position to prevent menu from going off screen
-  const adjustedPosition = {
-    x: Math.min(position.x, window.innerWidth - 180),
-    y: Math.min(position.y, window.innerHeight - 150),
-  };
 
   const hasCellOperations = cellColumn !== null && cellColumn !== undefined;
 
@@ -149,6 +184,17 @@ export function RowContextMenu({
           >
             <CircleSlash size={14} />
             Set as NULL
+          </button>
+          <button
+            onClick={() => {
+              onSetEmptyString?.();
+              onClose();
+            }}
+            disabled={cellValue === ''}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <FileText size={14} />
+            Set as empty string
           </button>
           <div className="my-1 border-t border-gray-200 dark:border-slate-700" />
         </>

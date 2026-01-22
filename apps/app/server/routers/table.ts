@@ -7,6 +7,7 @@ import {
   createRow,
   updateRow,
   deleteRow,
+  saveBatch,
 } from '@cloak-db/db-core';
 
 const FilterOperatorSchema = z.enum([
@@ -141,6 +142,28 @@ export const tableRouter = router({
     )
     .mutation(({ input }) =>
       deleteRow(input.schema, input.table, input.primaryKey),
+    ),
+
+  /**
+   * Save multiple rows atomically in a transaction
+   * All operations succeed or all fail - no partial saves.
+   */
+  saveBatch: publicProcedure
+    .input(
+      z.object({
+        schema: z.string().min(1),
+        table: z.string().min(1),
+        creates: z.array(RowDataSchema),
+        updates: z.array(
+          z.object({
+            primaryKey: PrimaryKeySchema,
+            data: RowDataSchema,
+          }),
+        ),
+      }),
+    )
+    .mutation(({ input }) =>
+      saveBatch(input.schema, input.table, input.creates, input.updates),
     ),
 });
 
