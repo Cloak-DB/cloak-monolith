@@ -8,6 +8,13 @@ export interface SavedConnection {
   connectionString: string;
   default: boolean;
   createdAt: string;
+  ssl?: {
+    rejectUnauthorized?: boolean;
+    ca?: string;
+    cert?: string;
+    key?: string;
+    passphrase?: string;
+  };
 }
 
 export interface AppPreferences {

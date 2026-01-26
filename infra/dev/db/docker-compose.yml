@@ -1,4 +1,5 @@
 services:
+  # Original local-db (no SSL) - kept for backwards compatibility
   local-db:
     image: postgres:15
     container_name: local-db
@@ -11,5 +12,117 @@ services:
     volumes:
       - local_data:/var/lib/postgresql/data
 
+  # ============================================
+  # SSL Testing Instances
+  # ============================================
+
+  # No SSL - Plain connection
+  pg-no-ssl:
+    image: postgres:15
+    container_name: pg-no-ssl
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+    ports:
+      - '5440:5432'
+    volumes:
+      - pg_no_ssl_data:/var/lib/postgresql/data
+
+  # SSL Required - Encrypts connection but no certificate verification
+  pg-ssl-require:
+    image: postgres:15
+    container_name: pg-ssl-require
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+    ports:
+      - '5441:5432'
+    volumes:
+      - pg_ssl_require_data:/var/lib/postgresql/data
+      - ./certs/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./certs/server.key:/var/lib/postgresql/server.key:ro
+      - ./certs/ca.crt:/var/lib/postgresql/ca.crt:ro
+    command: >
+      postgres
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
+
+  # SSL Verify CA - Requires valid CA certificate
+  pg-ssl-verify-ca:
+    image: postgres:15
+    container_name: pg-ssl-verify-ca
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+    ports:
+      - '5442:5432'
+    volumes:
+      - pg_ssl_verify_ca_data:/var/lib/postgresql/data
+      - ./certs/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./certs/server.key:/var/lib/postgresql/server.key:ro
+      - ./certs/ca.crt:/var/lib/postgresql/ca.crt:ro
+    command: >
+      postgres
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
+      -c ssl_ca_file=/var/lib/postgresql/ca.crt
+
+  # SSL Verify Full - Requires CA + hostname verification
+  pg-ssl-verify-full:
+    image: postgres:15
+    container_name: pg-ssl-verify-full
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+    ports:
+      - '5443:5432'
+    volumes:
+      - pg_ssl_verify_full_data:/var/lib/postgresql/data
+      - ./certs/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./certs/server.key:/var/lib/postgresql/server.key:ro
+      - ./certs/ca.crt:/var/lib/postgresql/ca.crt:ro
+    command: >
+      postgres
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
+      -c ssl_ca_file=/var/lib/postgresql/ca.crt
+
+  # SSL with Client Certificate (mTLS) - Requires client to present certificate
+  pg-ssl-mtls:
+    image: postgres:15
+    container_name: pg-ssl-mtls
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: testdb
+      POSTGRES_HOST_AUTH_METHOD: cert
+    ports:
+      - '5444:5432'
+    volumes:
+      - pg_ssl_mtls_data:/var/lib/postgresql/data
+      - ./certs/server.crt:/var/lib/postgresql/server.crt:ro
+      - ./certs/server.key:/var/lib/postgresql/server.key:ro
+      - ./certs/ca.crt:/var/lib/postgresql/ca.crt:ro
+      - ./pg_hba_mtls.conf:/var/lib/postgresql/pg_hba.conf:ro
+    command: >
+      postgres
+      -c ssl=on
+      -c ssl_cert_file=/var/lib/postgresql/server.crt
+      -c ssl_key_file=/var/lib/postgresql/server.key
+      -c ssl_ca_file=/var/lib/postgresql/ca.crt
+      -c hba_file=/var/lib/postgresql/pg_hba.conf
+
 volumes:
   local_data:
+  pg_no_ssl_data:
+  pg_ssl_require_data:
+  pg_ssl_verify_ca_data:
+  pg_ssl_verify_full_data:
+  pg_ssl_mtls_data:

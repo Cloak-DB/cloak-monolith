@@ -1,14 +1,17 @@
 'use client';
 
-import { type ReactNode, useState, useCallback } from 'react';
+import { type ReactNode, useState, useCallback, useEffect } from 'react';
 import Link from 'next/link';
 import { ChevronRight, Menu, X } from 'lucide-react';
 import { Navbar } from '@/components/Navbar';
+import { DocsSearch } from '@/components/DocsSearch';
 import { useAnalytics } from '@/lib/analytics/client';
 import type { Locale } from '@/lib/i18n/config';
 import type { DocContent } from '@/lib/mdx';
 import { CANONICAL_DOMAIN } from '@/lib/site';
 import { cn } from '@cloak-db/ui/lib/utils';
+
+const SIDEBAR_STATE_KEY = 'cloak-docs-sidebar-state';
 
 type DocsPageClientProps = {
   locale: Locale;
@@ -100,6 +103,9 @@ type SidebarSectionProps = {
   basePath: string;
   defaultOpen?: boolean;
   onNavigate?: () => void;
+  sectionKey: string;
+  onToggle: (key: string, isOpen: boolean) => void;
+  savedState?: boolean;
 };
 
 function SidebarSection({
@@ -107,17 +113,36 @@ function SidebarSection({
   docs,
   currentSlug,
   basePath,
-  defaultOpen = false,
+  defaultOpen = true,
   onNavigate,
+  sectionKey,
+  onToggle,
+  savedState,
 }: SidebarSectionProps) {
   const hasActivePage = docs.some((d) => d.meta.slug === currentSlug);
-  const [isOpen, setIsOpen] = useState(defaultOpen || hasActivePage);
+  // Use saved state if available, otherwise fall back to defaultOpen (true by default)
+  const [isOpen, setIsOpen] = useState(
+    savedState !== undefined ? savedState : defaultOpen,
+  );
   const { track } = useAnalytics();
+
+  // Sync with saved state when it changes
+  useEffect(() => {
+    if (savedState !== undefined) {
+      setIsOpen(savedState);
+    }
+  }, [savedState]);
+
+  const handleToggle = () => {
+    const newState = !isOpen;
+    setIsOpen(newState);
+    onToggle(sectionKey, newState);
+  };
 
   return (
     <div className="mb-4">
       <button
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleToggle}
         className="flex items-center justify-between w-full text-left py-1.5 group"
       >
         <span className="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider group-hover:text-gray-700 dark:group-hover:text-gray-300 transition-colors">
@@ -193,8 +218,34 @@ export function DocsPageClient({
     Array<{ id: string; text: string; level: number }>
   >([]);
   const [activeHeadingId, setActiveHeadingId] = useState<string | null>(null);
+  const [sidebarState, setSidebarState] = useState<Record<string, boolean>>({});
 
   const groupedDocs = groupDocs(allDocs);
+
+  // Load sidebar state from localStorage on mount
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(SIDEBAR_STATE_KEY);
+      if (saved) {
+        setSidebarState(JSON.parse(saved));
+      }
+    } catch {
+      // Ignore localStorage errors
+    }
+  }, []);
+
+  // Save sidebar state to localStorage
+  const handleSidebarToggle = useCallback((key: string, isOpen: boolean) => {
+    setSidebarState((prev) => {
+      const newState = { ...prev, [key]: isOpen };
+      try {
+        localStorage.setItem(SIDEBAR_STATE_KEY, JSON.stringify(newState));
+      } catch {
+        // Ignore localStorage errors
+      }
+      return newState;
+    });
+  }, []);
 
   const handleHeadingsExtracted = useCallback(
     (extracted: Array<{ id: string; text: string; level: number }>) => {
@@ -242,7 +293,7 @@ export function DocsPageClient({
         dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
-        <Navbar locale={locale} dict={navbarDict} />
+        <Navbar locale={locale} dict={navbarDict} compact />
 
         <div className="flex flex-1">
           {/* Mobile Nav Toggle */}
@@ -295,6 +346,15 @@ export function DocsPageClient({
               )}
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Mobile Search */}
+              <div className="mb-4">
+                <DocsSearch
+                  docs={allDocs}
+                  basePath={basePath}
+                  locale={locale}
+                />
+              </div>
+
               {groupedDocs.map(([title, docs]) => (
                 <SidebarSection
                   key={title}
@@ -304,6 +364,9 @@ export function DocsPageClient({
                   basePath={basePath}
                   defaultOpen
                   onNavigate={() => setMobileNavOpen(false)}
+                  sectionKey={title}
+                  onToggle={handleSidebarToggle}
+                  savedState={sidebarState[title]}
                 />
               ))}
             </aside>
@@ -311,6 +374,11 @@ export function DocsPageClient({
 
           {/* Desktop Sidebar */}
           <aside className="hidden lg:block w-56 flex-shrink-0 border-r border-gray-200 dark:border-gray-800 p-4 sticky top-[57px] h-[calc(100vh-57px)] overflow-y-auto">
+            {/* Search */}
+            <div className="mb-4">
+              <DocsSearch docs={allDocs} basePath={basePath} locale={locale} />
+            </div>
+
             {groupedDocs.map(([title, docs]) => (
               <SidebarSection
                 key={title}
@@ -318,6 +386,9 @@ export function DocsPageClient({
                 docs={docs}
                 currentSlug={slugString}
                 basePath={basePath}
+                sectionKey={title}
+                onToggle={handleSidebarToggle}
+                savedState={sidebarState[title]}
               />
             ))}
           </aside>

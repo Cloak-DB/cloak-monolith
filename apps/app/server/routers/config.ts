@@ -7,6 +7,16 @@ import {
   setDefaultConnection,
 } from '@cloak-db/db-core';
 
+const sslConfigSchema = z
+  .object({
+    rejectUnauthorized: z.boolean().optional(),
+    ca: z.string().optional(),
+    cert: z.string().optional(),
+    key: z.string().optional(),
+    passphrase: z.string().optional(),
+  })
+  .optional();
+
 export const configRouter = router({
   /**
    * Get the full config
@@ -23,12 +33,14 @@ export const configRouter = router({
         name: z.string().min(1),
         connectionString: z.string().min(1),
         default: z.boolean().optional(),
+        ssl: sslConfigSchema,
       }),
     )
     .mutation(({ input }) => {
       const config = saveConnection(input.name, input.connectionString, {
         id: input.id,
         default: input.default,
+        ssl: input.ssl,
       });
       const connection = config.connections.find(
         (c) =>

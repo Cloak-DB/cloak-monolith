@@ -26,7 +26,11 @@ import {
   Pencil,
   Plus,
   ExternalLink,
+  Shield,
+  AlertTriangle,
+  CheckCircle,
 } from 'lucide-react';
+import { Checkbox } from '@cloak-db/ui/components/checkbox';
 
 type ThemeOption = 'light' | 'dark' | 'system';
 
@@ -84,6 +88,13 @@ export default function SettingsPage() {
     id: string;
     name: string;
     connectionString: string;
+    ssl?: {
+      rejectUnauthorized?: boolean;
+      ca?: string;
+      cert?: string;
+      key?: string;
+      passphrase?: string;
+    };
   } | null>(null);
 
   // Form states
@@ -141,6 +152,7 @@ export default function SettingsPage() {
       id: editingConnection.id,
       name: editingConnection.name,
       connectionString: editingConnection.connectionString,
+      ssl: editingConnection.ssl,
     });
   };
 
@@ -304,6 +316,7 @@ export default function SettingsPage() {
                               id: conn.id,
                               name: conn.name,
                               connectionString: conn.connectionString,
+                              ssl: conn.ssl,
                             })
                           }
                           title="Edit connection"
@@ -425,6 +438,66 @@ export default function SettingsPage() {
                 }
               />
             </div>
+
+            {/* SSL Settings */}
+            <div className="space-y-3 pt-2 border-t border-gray-200 dark:border-gray-700">
+              <div className="flex items-center gap-2">
+                <Shield size={16} className="text-gray-500" />
+                <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                  SSL Settings
+                </span>
+              </div>
+
+              {/* SSL Certificates indicator */}
+              {(editingConnection.ssl?.ca ||
+                editingConnection.ssl?.cert ||
+                editingConnection.ssl?.key) && (
+                <div className="flex items-center gap-2 text-sm text-green-600 dark:text-green-400">
+                  <CheckCircle size={14} />
+                  <span>
+                    Certificates configured
+                    {editingConnection.ssl?.ca && ' (CA'}
+                    {editingConnection.ssl?.cert && ', Client Cert'}
+                    {editingConnection.ssl?.key && ', Client Key'}
+                    {(editingConnection.ssl?.ca ||
+                      editingConnection.ssl?.cert ||
+                      editingConnection.ssl?.key) &&
+                      ')'}
+                  </span>
+                </div>
+              )}
+
+              {/* Self-signed checkbox */}
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  checked={editingConnection.ssl?.rejectUnauthorized === false}
+                  onChange={(e) =>
+                    setEditingConnection({
+                      ...editingConnection,
+                      ssl: {
+                        ...editingConnection.ssl,
+                        rejectUnauthorized: e.target.checked
+                          ? false
+                          : undefined,
+                      },
+                    })
+                  }
+                  label="Allow self-signed certificates"
+                />
+                <div
+                  className="mt-0.5"
+                  title="Disables certificate verification. Use only for development."
+                >
+                  <AlertTriangle size={14} className="text-amber-500" />
+                </div>
+              </div>
+              {editingConnection.ssl?.rejectUnauthorized === false && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 ml-6">
+                  Disables certificate verification. Development only.
+                </p>
+              )}
+            </div>
+
             <div className="flex justify-end gap-3 pt-4">
               <Button
                 variant="outline"

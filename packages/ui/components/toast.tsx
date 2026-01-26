@@ -19,7 +19,7 @@ interface ToastContextType {
   addToast: (
     message: string,
     variant?: ToastVariant,
-    duration?: number
+    duration?: number,
   ) => void;
   removeToast: (id: string) => void;
   success: (message: string, duration?: number) => void;
@@ -48,30 +48,30 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         setTimeout(() => removeToast(id), duration);
       }
     },
-    [removeToast]
+    [removeToast],
   );
 
   const success = useCallback(
     (message: string, duration?: number) =>
       addToast(message, 'success', duration),
-    [addToast]
+    [addToast],
   );
 
   const error = useCallback(
     (message: string, duration?: number) =>
       addToast(message, 'error', duration),
-    [addToast]
+    [addToast],
   );
 
   const warning = useCallback(
     (message: string, duration?: number) =>
       addToast(message, 'warning', duration),
-    [addToast]
+    [addToast],
   );
 
   const info = useCallback(
     (message: string, duration?: number) => addToast(message, 'info', duration),
-    [addToast]
+    [addToast],
   );
 
   return (
@@ -98,20 +98,20 @@ const toastVariants = cva(
     variants: {
       variant: {
         default:
-          'bg-white text-black dark:bg-transparent dark:text-white dark:border-white',
+          'bg-white text-black dark:bg-gray-900 dark:text-white dark:border-gray-700',
         success:
-          'bg-green-50 text-black border-green-600 dark:bg-transparent dark:text-green-500 dark:border-green-500',
+          'bg-green-50 text-black border-green-600 dark:bg-green-950 dark:text-green-400 dark:border-green-700',
         error:
-          'bg-red-50 text-black border-red-600 dark:bg-transparent dark:text-red-500 dark:border-red-500',
+          'bg-red-50 text-black border-red-600 dark:bg-red-950 dark:text-red-400 dark:border-red-700',
         warning:
-          'bg-yellow-50 text-black border-yellow-600 dark:bg-transparent dark:text-yellow-500 dark:border-yellow-500',
-        info: 'bg-blue-50 text-black border-blue-600 dark:bg-transparent dark:text-blue-500 dark:border-blue-500',
+          'bg-yellow-50 text-black border-yellow-600 dark:bg-yellow-950 dark:text-yellow-400 dark:border-yellow-700',
+        info: 'bg-blue-50 text-black border-blue-600 dark:bg-blue-950 dark:text-blue-400 dark:border-blue-700',
       },
     },
     defaultVariants: {
       variant: 'default',
     },
-  }
+  },
 );
 
 function ToastContainer({
@@ -141,7 +141,7 @@ function ToastItem({
     <div
       className={cn(
         toastVariants({ variant: toast.variant }),
-        'animate-in slide-in-from-right-full'
+        'animate-in slide-in-from-right-full',
       )}
       role="alert"
     >

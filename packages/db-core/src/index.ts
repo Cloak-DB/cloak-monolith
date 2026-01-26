@@ -18,6 +18,7 @@ export {
 } from './connection';
 
 export type {
+  SSLConfig,
   ConnectionError,
   ConnectionResult,
   TestConnectionResult,
@@ -57,6 +58,7 @@ export {
   ConfigSchema,
   SavedConnectionSchema,
   AppPreferencesSchema,
+  SSLConfigSchema,
 } from './config';
 
 // Schema service

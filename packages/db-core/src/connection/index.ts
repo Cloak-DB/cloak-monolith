@@ -8,6 +8,7 @@ export {
 
 // Types
 export type {
+  SSLConfig,
   ConnectionError,
   ConnectionResult,
   TestConnectionResult,

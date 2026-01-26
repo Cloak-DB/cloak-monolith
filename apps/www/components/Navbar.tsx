@@ -37,6 +37,11 @@ interface NavbarProps {
    * Additional offset for mobile menu top position (e.g., for preview banners).
    */
   mobileMenuTopOffset?: number;
+  /**
+   * Force compact navbar style (skips scroll-based shrinking).
+   * Useful for pages like docs where consistent height is preferred.
+   */
+  compact?: boolean;
 }
 
 // =============================================================================
@@ -91,6 +96,7 @@ export function Navbar({
   mobileMenuOpen: externalMobileMenuOpen,
   setMobileMenuOpen: externalSetMobileMenuOpen,
   mobileMenuTopOffset = 0,
+  compact = false,
 }: NavbarProps) {
   const basePath = locale === 'en' ? '' : `/${locale}`;
   const otherLocale = locale === 'en' ? 'fr' : 'en';
@@ -107,8 +113,8 @@ export function Navbar({
     ? (externalSetMobileMenuOpen ?? (() => {}))
     : setInternalMobileMenuOpen;
 
-  // Scroll-based shrinking (only for sticky mode)
-  const [isScrolled, setIsScrolled] = useState(false);
+  // Scroll-based shrinking (only for sticky mode, disabled when compact)
+  const [isScrolled, setIsScrolled] = useState(compact);
 
   // Build the language switch URL - keep current path but change locale
   const getLanguageSwitchUrl = () => {
@@ -132,9 +138,9 @@ export function Navbar({
 
   const languageSwitchUrl = getLanguageSwitchUrl();
 
-  // Handle navbar shrink on scroll (sticky mode only)
+  // Handle navbar shrink on scroll (sticky mode only, disabled when compact)
   useEffect(() => {
-    if (isVisibilityMode) return;
+    if (isVisibilityMode || compact) return;
 
     const handleScroll = () => {
       setIsScrolled(window.scrollY > window.innerHeight * 0.8);
@@ -142,7 +148,7 @@ export function Navbar({
 
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [isVisibilityMode]);
+  }, [isVisibilityMode, compact]);
 
   // Prevent body scroll when mobile menu is open
   useEffect(() => {

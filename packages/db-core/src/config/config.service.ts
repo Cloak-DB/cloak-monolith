@@ -84,15 +84,39 @@ export function writeConfig(config: Config): void {
 }
 
 /**
+ * SSL config for saved connections
+ */
+interface SaveConnectionSSLConfig {
+  rejectUnauthorized?: boolean;
+  ca?: string;
+  cert?: string;
+  key?: string;
+  passphrase?: string;
+}
+
+/**
  * Add or update a saved connection
  */
 export function saveConnection(
   name: string,
   connectionString: string,
-  options: { id?: string; default?: boolean } = {},
+  options: {
+    id?: string;
+    default?: boolean;
+    ssl?: SaveConnectionSSLConfig;
+  } = {},
 ): Config {
   const config = readConfig();
   const now = new Date().toISOString();
+
+  // Clean SSL config - remove undefined values
+  const cleanSsl = options.ssl
+    ? Object.fromEntries(
+        Object.entries(options.ssl).filter(([, v]) => v !== undefined),
+      )
+    : undefined;
+  const ssl =
+    cleanSsl && Object.keys(cleanSsl).length > 0 ? cleanSsl : undefined;
 
   if (options.id) {
     // Update existing connection
@@ -103,6 +127,7 @@ export function saveConnection(
         name,
         connectionString,
         default: options.default ?? config.connections[index].default,
+        ssl: ssl as SaveConnectionSSLConfig,
       };
     }
   } else {
@@ -124,6 +149,7 @@ export function saveConnection(
       connectionString,
       default: isDefault,
       createdAt: now,
+      ssl: ssl as SaveConnectionSSLConfig,
     });
   }
 

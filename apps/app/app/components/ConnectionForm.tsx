@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
-import { Shield } from 'lucide-react';
+import { Shield, AlertTriangle } from 'lucide-react';
 import { Button } from '@cloak-db/ui/components/button';
 import { Input } from '@cloak-db/ui/components/input';
 import { Checkbox } from '@cloak-db/ui/components/checkbox';
@@ -26,16 +26,21 @@ import {
   parseSSLMode,
   updateSSLMode,
   SSL_MODE_OPTIONS,
+  isEncryptedKey,
   type SSLMode,
+  type SSLCertificateConfig,
 } from '@/lib/connection-string';
 import { useDebounce } from '@/lib/hooks/use-debounce';
+import { CertificateInput } from './certificate-input';
 
 interface ConnectionFormProps {
   initialConnectionString?: string;
+  initialSsl?: SSLCertificateConfig;
 }
 
 export function ConnectionForm({
   initialConnectionString = '',
+  initialSsl,
 }: ConnectionFormProps) {
   const router = useRouter();
   const [connectionString, setConnectionString] = useState(
@@ -50,6 +55,10 @@ export function ConnectionForm({
   const [sslEnabled, setSslEnabled] = useState(false);
   const [sslMode, setSslMode] = useState<SSLMode>('require');
   const [showDisableWarning, setShowDisableWarning] = useState(false);
+  const [allowSelfSigned, setAllowSelfSigned] = useState(false);
+  const [sslCertificates, setSslCertificates] = useState<SSLCertificateConfig>(
+    {},
+  );
 
   // Track if we're updating from internal changes to prevent loops
   const isInternalUpdate = useRef(false);
@@ -84,6 +93,19 @@ export function ConnectionForm({
       }
     }
   }, [initialConnectionString]);
+
+  // Populate SSL settings from initialSsl prop (for editing saved connections)
+  useEffect(() => {
+    if (initialSsl) {
+      setAllowSelfSigned(initialSsl.rejectUnauthorized === false);
+      setSslCertificates({
+        ca: initialSsl.ca,
+        cert: initialSsl.cert,
+        key: initialSsl.key,
+        passphrase: initialSsl.passphrase,
+      });
+    }
+  }, [initialSsl]);
 
   const { data: connectionStatus } = trpc.connection.status.useQuery();
   const disconnectMutation = trpc.connection.disconnect.useMutation();
@@ -123,12 +145,37 @@ export function ConnectionForm({
     },
   });
 
+  // Build SSL config object for backend
+  const buildSslConfig = (): SSLCertificateConfig | undefined => {
+    if (!sslEnabled) return undefined;
+
+    const hasCertificates =
+      sslCertificates.ca ||
+      sslCertificates.cert ||
+      sslCertificates.key ||
+      sslCertificates.passphrase;
+
+    // Include rejectUnauthorized if self-signed is allowed, or if we have certificates
+    if (!hasCertificates && !allowSelfSigned) return undefined;
+
+    return {
+      rejectUnauthorized: allowSelfSigned ? false : undefined,
+      ca: sslCertificates.ca || undefined,
+      cert: sslCertificates.cert || undefined,
+      key: sslCertificates.key || undefined,
+      passphrase: sslCertificates.passphrase || undefined,
+    };
+  };
+
   const handleTest = () => {
     if (!connectionString.trim()) {
       error('Please enter a connection string');
       return;
     }
-    testMutation.mutate({ connectionString });
+    testMutation.mutate({
+      connectionString,
+      ssl: buildSslConfig(),
+    });
   };
 
   const handleConnect = async () => {
@@ -149,13 +196,17 @@ export function ConnectionForm({
         await saveConnectionMutation.mutateAsync({
           name: connectionName.trim(),
           connectionString,
+          ssl: buildSslConfig(),
         });
       } catch {
         // Continue with connect even if save fails
       }
     }
 
-    connectMutation.mutate({ connectionString });
+    connectMutation.mutate({
+      connectionString,
+      ssl: buildSslConfig(),
+    });
   };
 
   // Handle SSL toggle
@@ -272,6 +323,89 @@ export function ConnectionForm({
               <p className="text-xs text-slate-500 dark:text-gray-500">
                 {currentModeDescription}
               </p>
+            </div>
+
+            {/* Self-signed certificate option */}
+            <div
+              className={`overflow-hidden transition-all duration-200 ease-out ${
+                sslEnabled && sslMode !== 'disable'
+                  ? 'max-h-20 opacity-100'
+                  : 'max-h-0 opacity-0'
+              }`}
+            >
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  checked={allowSelfSigned}
+                  onChange={(e) => setAllowSelfSigned(e.target.checked)}
+                  disabled={isLoading}
+                  label="Allow self-signed certificates"
+                />
+                <div
+                  className="mt-0.5 relative group"
+                  title="Disables certificate verification. Use only for development."
+                >
+                  <AlertTriangle
+                    size={14}
+                    className="text-amber-500 cursor-help"
+                  />
+                </div>
+              </div>
+              {allowSelfSigned && (
+                <p className="text-xs text-amber-600 dark:text-amber-400 mt-1 ml-6">
+                  Disables certificate verification. Development only.
+                </p>
+              )}
+            </div>
+
+            {/* Certificate section - only for verify-ca or verify-full */}
+            <div
+              className={`space-y-4 overflow-hidden transition-all duration-200 ease-out ${
+                sslEnabled &&
+                (sslMode === 'verify-ca' || sslMode === 'verify-full')
+                  ? 'max-h-[800px] opacity-100 mt-4 pt-4 border-t border-slate-200 dark:border-slate-700'
+                  : 'max-h-0 opacity-0'
+              }`}
+            >
+              <span className="text-sm font-medium text-slate-700 dark:text-gray-300">
+                Certificates
+              </span>
+
+              <CertificateInput
+                label="CA Certificate"
+                value={sslCertificates.ca || ''}
+                onChange={(ca) =>
+                  setSslCertificates((prev) => ({ ...prev, ca }))
+                }
+                placeholder="-----BEGIN CERTIFICATE-----"
+                disabled={isLoading}
+              />
+
+              <CertificateInput
+                label="Client Certificate"
+                value={sslCertificates.cert || ''}
+                onChange={(cert) =>
+                  setSslCertificates((prev) => ({ ...prev, cert }))
+                }
+                placeholder="-----BEGIN CERTIFICATE-----"
+                optional
+                disabled={isLoading}
+              />
+
+              <CertificateInput
+                label="Client Key"
+                value={sslCertificates.key || ''}
+                onChange={(key) =>
+                  setSslCertificates((prev) => ({ ...prev, key }))
+                }
+                placeholder="-----BEGIN PRIVATE KEY-----"
+                optional
+                showPassphrase={isEncryptedKey(sslCertificates.key || '')}
+                passphrase={sslCertificates.passphrase}
+                onPassphraseChange={(passphrase) =>
+                  setSslCertificates((prev) => ({ ...prev, passphrase }))
+                }
+                disabled={isLoading}
+              />
             </div>
           </div>
 

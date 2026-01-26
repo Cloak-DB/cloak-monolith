@@ -68,9 +68,15 @@ export default function StudioLayout({
     );
   }
 
+  // Build connection key for tab persistence: host:port/database
+  const connectionKey =
+    status.host && status.database
+      ? `${status.host}:${status.port ?? 5432}/${status.database}`
+      : null;
+
   return (
     <SchemaProvider defaultSchema="public">
-      <TabsProvider>
+      <TabsProvider connectionKey={connectionKey}>
         <StudioContent
           database={status.database ?? ''}
           host={status.host ?? ''}

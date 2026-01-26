@@ -6,6 +6,7 @@ import {
   useState,
   useEffect,
   useCallback,
+  useRef,
   type ReactNode,
 } from 'react';
 
@@ -20,6 +21,15 @@ export interface Tab {
   table?: string;
   title?: string; // For query tabs
   hasUnsavedChanges?: boolean;
+}
+
+interface ConnectionTabsData {
+  tabs: Tab[];
+  activeTabId: string | null;
+}
+
+interface StorageData {
+  connections: Record<string, ConnectionTabsData>;
 }
 
 interface TabsContextValue {
@@ -74,43 +84,72 @@ function findExistingTab(
   );
 }
 
-function loadTabsFromStorage(): { tabs: Tab[]; activeTabId: string | null } {
+function loadAllConnectionsFromStorage(): StorageData {
   if (typeof window === 'undefined') {
-    return { tabs: [], activeTabId: null };
+    return { connections: {} };
   }
 
   try {
     const stored = localStorage.getItem(STORAGE_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
-      // Clear hasUnsavedChanges on load since we can't restore unsaved data
-      const tabs = (parsed.tabs || []).map((t: Tab) => ({
-        ...t,
-        hasUnsavedChanges: false,
-      }));
-      return {
-        tabs,
-        activeTabId:
-          parsed.activeTabId || (tabs.length > 0 ? tabs[0].id : null),
-      };
+      // Support new format with connections key
+      if (parsed.connections) {
+        return parsed as StorageData;
+      }
     }
   } catch (e) {
     console.error('Failed to load tabs from storage:', e);
   }
 
+  return { connections: {} };
+}
+
+function loadTabsForConnection(
+  connectionKey: string | null,
+): ConnectionTabsData {
+  if (!connectionKey) {
+    return { tabs: [], activeTabId: null };
+  }
+
+  const storageData = loadAllConnectionsFromStorage();
+  const connectionData = storageData.connections[connectionKey];
+
+  if (connectionData) {
+    // Clear hasUnsavedChanges on load since we can't restore unsaved data
+    const tabs = (connectionData.tabs || []).map((t: Tab) => ({
+      ...t,
+      hasUnsavedChanges: false,
+    }));
+    return {
+      tabs,
+      activeTabId:
+        connectionData.activeTabId || (tabs.length > 0 ? tabs[0].id : null),
+    };
+  }
+
   return { tabs: [], activeTabId: null };
 }
 
-function saveTabsToStorage(tabs: Tab[], activeTabId: string | null): void {
-  if (typeof window === 'undefined') return;
+function saveTabsForConnection(
+  connectionKey: string | null,
+  tabs: Tab[],
+  activeTabId: string | null,
+): void {
+  if (typeof window === 'undefined' || !connectionKey) return;
 
   try {
+    const storageData = loadAllConnectionsFromStorage();
+
     // Don't persist hasUnsavedChanges
     const tabsToSave = tabs.map(({ hasUnsavedChanges, ...rest }) => rest);
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify({ tabs: tabsToSave, activeTabId }),
-    );
+
+    storageData.connections[connectionKey] = {
+      tabs: tabsToSave,
+      activeTabId,
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(storageData));
   } catch (e) {
     console.error('Failed to save tabs to storage:', e);
   }
@@ -122,31 +161,48 @@ function saveTabsToStorage(tabs: Tab[], activeTabId: string | null): void {
 
 interface TabsProviderProps {
   children: ReactNode;
+  connectionKey: string | null;
 }
 
-export function TabsProvider({ children }: TabsProviderProps) {
+export function TabsProvider({ children, connectionKey }: TabsProviderProps) {
   const [tabs, setTabs] = useState<Tab[]>([]);
   const [activeTabId, setActiveTabId] = useState<string | null>(null);
   const [pendingCloseTabId, setPendingCloseTabId] = useState<string | null>(
     null,
   );
   const [isInitialized, setIsInitialized] = useState(false);
+  const previousConnectionKeyRef = useRef<string | null>(null);
 
-  // Load from localStorage on mount
+  // Load tabs when connection changes
   useEffect(() => {
+    // Save current tabs to previous connection before switching
+    if (
+      isInitialized &&
+      previousConnectionKeyRef.current !== null &&
+      previousConnectionKeyRef.current !== connectionKey
+    ) {
+      saveTabsForConnection(
+        previousConnectionKeyRef.current,
+        tabs,
+        activeTabId,
+      );
+    }
+
+    // Load tabs for new connection
     const { tabs: storedTabs, activeTabId: storedActiveId } =
-      loadTabsFromStorage();
+      loadTabsForConnection(connectionKey);
     setTabs(storedTabs);
     setActiveTabId(storedActiveId);
     setIsInitialized(true);
-  }, []);
+    previousConnectionKeyRef.current = connectionKey;
+  }, [connectionKey]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Save to localStorage on changes
+  // Save to localStorage on tab changes (not on connection change)
   useEffect(() => {
-    if (isInitialized) {
-      saveTabsToStorage(tabs, activeTabId);
+    if (isInitialized && connectionKey) {
+      saveTabsForConnection(connectionKey, tabs, activeTabId);
     }
-  }, [tabs, activeTabId, isInitialized]);
+  }, [tabs, activeTabId, isInitialized, connectionKey]);
 
   const openTab = useCallback(
     (tabData: Omit<Tab, 'id'>): string => {

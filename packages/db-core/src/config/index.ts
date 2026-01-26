@@ -20,4 +20,5 @@ export {
   ConfigSchema,
   SavedConnectionSchema,
   AppPreferencesSchema,
+  SSLConfigSchema,
 } from './config.schema';

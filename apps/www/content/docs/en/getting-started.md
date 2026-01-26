@@ -95,6 +95,7 @@ Press `Cmd+Enter` to execute. Results are limited to 500 rows.
 
 - [Keyboard Shortcuts](/docs/keyboard-shortcuts) - Full shortcut reference
 - [Studio Features](/docs/studio-features) - Data browser details
+- [SSL Connections](/docs/ssl-connections) - Secure database connections
 
 ## Roadmap
 

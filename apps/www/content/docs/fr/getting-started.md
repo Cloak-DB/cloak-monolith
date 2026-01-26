@@ -95,6 +95,7 @@ Appuyez sur `Cmd+Entrée` pour exécuter. Les résultats sont limités à 500 li
 
 - [Raccourcis Clavier](/docs/keyboard-shortcuts) — Référence complète des raccourcis
 - [Fonctionnalités du Studio](/docs/studio-features) — Détails du navigateur de données
+- [Connexions SSL](/docs/ssl-connections) — Connexions sécurisées à la base de données
 
 ## Feuille de Route
 

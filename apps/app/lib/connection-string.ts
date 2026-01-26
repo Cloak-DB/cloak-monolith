@@ -1,8 +1,17 @@
 export type SSLMode = 'disable' | 'require' | 'verify-ca' | 'verify-full';
 
+export interface SSLCertificateConfig {
+  rejectUnauthorized?: boolean; // Whether to verify the server certificate (default: true)
+  ca?: string; // CA certificate content
+  cert?: string; // Client certificate content
+  key?: string; // Client key content
+  passphrase?: string; // Passphrase for encrypted client key
+}
+
 export interface ParsedSSLConfig {
   enabled: boolean;
   mode: SSLMode | null;
+  certificates?: SSLCertificateConfig;
 }
 
 export const SSL_MODE_OPTIONS = [
@@ -121,4 +130,25 @@ export function updateSSLMode(
     // Invalid URL, return unchanged
     return connectionString;
   }
+}
+
+/**
+ * Check if a string looks like a valid PEM certificate/key
+ */
+export function isValidPemFormat(content: string): boolean {
+  return content.trim().startsWith('-----BEGIN');
+}
+
+/**
+ * Check if a PEM key is encrypted
+ */
+export function isEncryptedKey(keyContent: string): boolean {
+  return keyContent.includes('ENCRYPTED');
+}
+
+/**
+ * Normalize certificate content (Windows line endings to Unix)
+ */
+export function normalizeCertificate(content: string): string {
+  return content.replace(/\r\n/g, '\n').trim();
 }

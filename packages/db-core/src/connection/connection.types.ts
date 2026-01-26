@@ -1,6 +1,17 @@
 import type { DbError } from '../shared/errors';
 
 /**
+ * SSL configuration for PostgreSQL connections
+ */
+export interface SSLConfig {
+  rejectUnauthorized?: boolean;
+  ca?: string;
+  cert?: string;
+  key?: string;
+  passphrase?: string;
+}
+
+/**
  * Connection error with user-friendly messaging
  */
 export interface ConnectionError extends DbError {

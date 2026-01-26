@@ -12,6 +12,7 @@ import type {
   ConnectionResult,
   TestConnectionResult,
   ConnectionStatus,
+  SSLConfig,
 } from './connection.types';
 
 /**
@@ -30,14 +31,70 @@ function transformConnectionStringForDocker(connectionString: string): string {
 }
 
 /**
+ * Remove sslmode parameter from connection string.
+ * This is necessary because node-postgres ignores the `ssl` config option
+ * when sslmode is present in the connection string URL.
+ * We handle SSL entirely through the `ssl` config option for full control.
+ */
+function removeSSLModeFromConnectionString(connectionString: string): string {
+  try {
+    const url = new URL(connectionString);
+    url.searchParams.delete('sslmode');
+    return url.toString();
+  } catch {
+    return connectionString;
+  }
+}
+
+/**
+ * Extract sslmode from connection string.
+ */
+function getSSLModeFromConnectionString(
+  connectionString: string,
+): string | null {
+  try {
+    const url = new URL(connectionString);
+    return url.searchParams.get('sslmode');
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Build SSL options for pg Pool based on connection string sslmode and SSL config.
+ */
+function buildSSLOptions(
+  connectionString: string,
+  sslConfig?: SSLConfig,
+): false | object {
+  const sslMode = getSSLModeFromConnectionString(connectionString);
+
+  if (!sslMode || sslMode === 'disable') {
+    return false;
+  }
+
+  // For 'require' mode without certificates, use minimal SSL config
+  // For 'verify-ca' and 'verify-full', include certificate options
+  return {
+    rejectUnauthorized: sslConfig?.rejectUnauthorized ?? sslMode !== 'require',
+    ca: sslConfig?.ca || undefined,
+    cert: sslConfig?.cert || undefined,
+    key: sslConfig?.key || undefined,
+    passphrase: sslConfig?.passphrase || undefined,
+  };
+}
+
+/**
  * Test a database connection without persisting it.
  * Validates the connection string and attempts a brief connection.
  *
  * @param connectionString - PostgreSQL connection string
+ * @param sslConfig - Optional SSL configuration for certificates
  * @returns TestConnectionResult indicating success or failure with error details
  */
 export async function testConnection(
   connectionString: string,
+  sslConfig?: SSLConfig,
 ): Promise<TestConnectionResult> {
   // Validate connection string format and PostgreSQL enforcement
   const validation = validatePostgresConnectionString(connectionString);
@@ -51,12 +108,18 @@ export async function testConnection(
   // Attempt to connect
   let testPool: Pool | null = null;
   try {
-    const transformedConnectionString =
-      transformConnectionStringForDocker(connectionString);
+    // Remove sslmode from URL - we handle SSL via the ssl config option
+    // (node-postgres ignores ssl config when sslmode is in the URL)
+    const cleanedConnectionString =
+      removeSSLModeFromConnectionString(connectionString);
+    const transformedConnectionString = transformConnectionStringForDocker(
+      cleanedConnectionString,
+    );
     testPool = new Pool({
       connectionString: transformedConnectionString,
       max: 1,
       connectionTimeoutMillis: 10000, // 10 second timeout for test
+      ssl: buildSSLOptions(connectionString, sslConfig),
     });
 
     // Try to get a client to verify connection works
@@ -84,10 +147,12 @@ export async function testConnection(
  * Only one connection at a time is supported.
  *
  * @param connectionString - PostgreSQL connection string
+ * @param sslConfig - Optional SSL configuration for certificates
  * @returns ConnectionResult with connection info or error
  */
 export async function connect(
   connectionString: string,
+  sslConfig?: SSLConfig,
 ): Promise<ConnectionResult> {
   // Check if already connected
   if (isConnected()) {
@@ -113,13 +178,19 @@ export async function connect(
   // Create the pool
   let pool: Pool | null = null;
   try {
-    const transformedConnectionString =
-      transformConnectionStringForDocker(connectionString);
+    // Remove sslmode from URL - we handle SSL via the ssl config option
+    // (node-postgres ignores ssl config when sslmode is in the URL)
+    const cleanedConnectionString =
+      removeSSLModeFromConnectionString(connectionString);
+    const transformedConnectionString = transformConnectionStringForDocker(
+      cleanedConnectionString,
+    );
     pool = new Pool({
       connectionString: transformedConnectionString,
       max: 10, // Maximum connections in pool
       idleTimeoutMillis: 30000,
       connectionTimeoutMillis: 10000,
+      ssl: buildSSLOptions(connectionString, sslConfig),
     });
 
     // Verify connection by getting a client

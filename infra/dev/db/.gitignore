@@ -1,0 +1,2 @@
+# Generated SSL certificates (regenerate with ./generate-certs.sh)
+certs/
