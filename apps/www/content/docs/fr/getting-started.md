@@ -1,76 +1,106 @@
 ---
 title: Premiers Pas
-description: Démarrez avec Cloak DB
+description: Démarrez avec Cloak DB en quelques minutes
 order: 1
 ---
 
-# Premiers Pas avec Cloak DB
+# Premiers Pas
 
-## Qu'est-ce que Cloak DB?
+Cloak DB est un studio PostgreSQL conçu pour les développeurs. Parcourez vos données, exécutez des requêtes et modifiez des lignes — le tout depuis une interface optimisée pour le clavier.
 
-Cloak DB est un **outil open-source, local d'abord** qui vous permet de restaurer des snapshots de bases de données de production vers votre environnement de développement—avec anonymisation, filtrage intelligent et scénarios de test réutilisables.
+## Installation
 
-Travaillez avec des données réalistes localement. Aucune dépendance cloud. Aucun secret exposé.
+Cloak DB s'exécute comme un conteneur Docker. Assurez-vous que [Docker](https://docker.com) est installé et en cours d'exécution.
 
-## Le Problème que Nous Résolvons
+```bash
+npx @cloak-app/app
+```
 
-Tester et développer avec des données réalistes est difficile :
-- La saisie manuelle de données est fastidieuse et non réaliste
-- Les dumps de production contiennent des informations sensibles
-- Configurer des scénarios de test complexes prend trop de temps
-- Les équipes QA peinent à reproduire des cas particuliers spécifiques
-- Les démos nécessitent des états de données spécifiques difficiles à créer
+Cela va :
+1. Télécharger la dernière image Cloak DB
+2. Démarrer le studio sur le port 3000
+3. Ouvrir votre navigateur automatiquement
 
-## Comment Cloak DB Aide
+**Options :**
+- `--port 3001` — Utiliser un port différent
+- `--tag 0.2.4` — Utiliser une version spécifique
 
-### 1. Restaurer les Données de Production Localement
-Connectez-vous à votre base de données de production et exportez les données vers votre environnement de développement avec filtrage intelligent :
-- Restaurez seulement ce dont vous avez besoin (ex. "5 utilisateurs + toutes les données associées")
-- Parcours automatique des clés étrangères pour assurer l'intégrité référentielle
-- Inclusion explicite de tables pour un contrôle fin
-- Support actuel de PostgreSQL (plus de bases de données à venir)
+## Connexion à Votre Base de Données
 
-### 2. Anonymiser les Données Sensibles
-Transformez les champs sensibles avant que les données n'atteignent votre machine locale :
-- Définissez des règles d'anonymisation via configuration TypeScript
-- Basé sur Faker pour des données factices réalistes
-- Configuration auditable et compatible git
-- Protège la confidentialité tout en maintenant le réalisme des données
+1. Cliquez sur **Ajouter une connexion** sur l'écran d'accueil
+2. Entrez votre chaîne de connexion PostgreSQL :
+   ```
+   postgresql://user:password@localhost:5432/mydb
+   ```
+3. Donnez-lui un nom (ex. "Dev Local")
+4. Cliquez sur **Tester la connexion** pour vérifier
+5. Cliquez sur **Enregistrer**
 
-### 3. Scénarios de Test Réutilisables
-Sauvegardez et restaurez des scénarios de test spécifiques en un clic :
-- Exemple : "Utilisateur avec 3 éléments en attente, un en retard"
-- Parfait pour les workflows QA, démos et tests répétables
-- Partageable en équipe via contrôle de version
-- Aucun secret stocké dans votre dépôt
+Vos connexions sont stockées localement dans `~/.config/cloak-db/config.json`.
 
-## Qui Devrait Utiliser Cloak DB?
+## Navigation dans le Studio
 
-- **Équipes QA** — Configurez des états de test complexes sans saisie manuelle
-- **Développeurs** — Testez avec des données réalistes localement, détectez les cas limites tôt
-- **Démo/Ventes** — Montrez des scénarios spécifiques aux parties prenantes en quelques secondes
-- **Tests E2E** — Créez des suites de tests fiables avec des données réalistes
+Une fois connecté, vous verrez :
 
-## Comment Ça Fonctionne
+- **Barre latérale gauche** — Vos schémas et tables
+- **Zone principale** — Navigateur de données ou éditeur de requêtes
+- **Onglets** — Ouvrez plusieurs tables simultanément
 
-1. **Serveur Local** — S'exécute sur votre machine avec une interface web et une API
-2. **Configuration** — Configurez les connexions aux bases de données et les règles d'anonymisation (compatible git, secrets injectés au runtime)
-3. **Restauration** — Récupérez des données réalistes de production vers votre base de développement
-4. **Création de Scénarios** — Sauvegardez des scénarios de test réutilisables
-5. **Restauration en un Clic** — Restaurez n'importe quel scénario instantanément
+### Actions Rapides
 
-## Architecture
+| Action | Raccourci |
+|--------|-----------|
+| Rechercher des tables | `Cmd+E` |
+| Nouvel onglet requête | `Cmd+J` |
+| Fermer l'onglet | `W` |
+| Enregistrer les modifications | `Cmd+S` |
+| Afficher tous les raccourcis | `?` |
 
-Cloak DB s'exécute entièrement sur votre machine locale :
-- Interface web pour gérer les connexions et scénarios
-- Serveur API pour orchestrer les opérations de données
-- Moteur d'introspection de base de données
-- Pipeline d'anonymisation
-- Système de gestion de scénarios
+## Parcourir les Données
 
-Toutes vos données restent locales. Vos secrets de production ne quittent jamais votre contrôle.
+Cliquez sur n'importe quelle table pour voir ses données. Vous pouvez :
 
-## Statut Actuel
+- **Trier** — Cliquez sur les en-têtes de colonnes
+- **Filtrer** — Utilisez la barre de filtre avec des opérateurs comme `=`, `>`, `contient`
+- **Rechercher** — Recherche floue dans la page actuelle
+- **Paginer** — Naviguez dans les grandes tables (25-1000 lignes par page)
 
-Cloak DB est en **développement actif** avec un programme bêta disponible. Rejoignez la bêta pour obtenir un accès anticipé et aider à façonner le produit.
+## Modifier les Données
 
+Cloak DB suit vos modifications avant de les enregistrer :
+
+1. **Cliquez sur une cellule** pour éditer en ligne
+2. **L'indicateur jaune** montre les modifications en attente
+3. **Cmd+S** pour enregistrer toutes les modifications
+4. **Annuler** pour revenir en arrière
+
+Vous pouvez aussi :
+- **Ajouter des lignes** avec `Cmd+N`
+- **Supprimer des lignes** en sélectionnant et appuyant sur `Suppr`
+- **Multi-sélectionner des cellules** avec `Cmd+Clic`
+
+## Exécuter des Requêtes
+
+Ouvrez un onglet requête avec `Cmd+J` et écrivez du SQL :
+
+```sql
+SELECT * FROM users WHERE created_at > '2024-01-01';
+```
+
+Appuyez sur `Cmd+Entrée` pour exécuter. Les résultats sont limités à 500 lignes.
+
+**Sécurité :** Les opérations dangereuses comme `DROP DATABASE` sont bloquées.
+
+## Prochaines Étapes
+
+- [Raccourcis Clavier](/docs/keyboard-shortcuts) — Référence complète des raccourcis
+- [Fonctionnalités du Studio](/docs/studio-features) — Détails du navigateur de données
+
+## Feuille de Route
+
+Nous travaillons activement sur :
+- **Time Machine** — Sauvegardez et restaurez les états de la base de données
+- **Inspecteur de Ressources** — Visualisez les relations
+- **Anonymisation** — Masquez les données personnelles pour des tests sécurisés
+
+Suivez notre progression sur [GitHub](https://github.com/Cloak-DB/cloak-monolith).
