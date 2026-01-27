@@ -86,6 +86,14 @@ interface DataGridProps {
   onSaveCellChange?: (rowKey: string, column: string) => void;
   onDiscardCellChange?: (rowKey: string, column: string) => void;
   isSaving?: boolean;
+  // Multi-cell selection operations (for context menu)
+  selectedCellCount?: number;
+  onCopySelectedCells?: () => void;
+  onCutSelectedCells?: () => void;
+  onPasteToSelectedCells?: () => void;
+  onSaveSelectedCells?: () => void;
+  onDiscardSelectedCells?: () => void;
+  getSelectedCellsWithChangesCount?: () => number;
 }
 
 function formatCellValue(value: unknown, type: string): React.ReactNode {
@@ -200,6 +208,13 @@ export function DataGrid({
   onSaveCellChange,
   onDiscardCellChange,
   isSaving,
+  selectedCellCount = 0,
+  onCopySelectedCells,
+  onCutSelectedCells,
+  onPasteToSelectedCells,
+  onSaveSelectedCells,
+  onDiscardSelectedCells,
+  getSelectedCellsWithChangesCount,
 }: DataGridProps) {
   // Dev overrides for testing loading states
   const { isForceLoading } = useDevOverrides();
@@ -328,12 +343,36 @@ export function DataGrid({
     }
   }, [contextMenu, primaryKeyColumns, onCellChange, onCopySuccess]);
 
-  const handlePaste = useCallback(() => {
-    if (
-      contextMenu &&
-      contextMenu.cellColumn !== null &&
-      clipboard !== undefined
-    ) {
+  const handlePaste = useCallback(async () => {
+    if (!contextMenu || contextMenu.cellColumn === null) return;
+
+    try {
+      // Read from system clipboard
+      const clipboardText = await navigator.clipboard.readText();
+      if (!clipboardText) return;
+
+      // Try to parse the value appropriately
+      let pastedValue: unknown = clipboardText;
+
+      // Handle special string values
+      if (clipboardText === 'NULL' || clipboardText === 'null') {
+        pastedValue = null;
+      } else if (clipboardText === 'true') {
+        pastedValue = true;
+      } else if (clipboardText === 'false') {
+        pastedValue = false;
+      } else {
+        // Try to parse as JSON for objects/arrays
+        try {
+          const parsed = JSON.parse(clipboardText);
+          if (typeof parsed === 'object') {
+            pastedValue = parsed;
+          }
+        } catch {
+          // Not JSON, use as string
+        }
+      }
+
       const isNewRow = contextMenu.rowKey.startsWith('new:');
       const pk = isNewRow
         ? {}
@@ -343,10 +382,13 @@ export function DataGrid({
         pk,
         contextMenu.cellColumn,
         contextMenu.row[contextMenu.cellColumn],
-        clipboard,
+        pastedValue,
       );
+    } catch (err) {
+      // Clipboard access denied or failed - silently ignore
+      console.error('Failed to read clipboard:', err);
     }
-  }, [contextMenu, clipboard, primaryKeyColumns, onCellChange]);
+  }, [contextMenu, primaryKeyColumns, onCellChange]);
 
   const handleSetNull = useCallback(() => {
     if (contextMenu && contextMenu.cellColumn !== null) {
@@ -711,12 +753,19 @@ export function DataGrid({
         }
         cellColumn={contextMenu?.cellColumn}
         cellValue={contextMenu?.cellValue}
+        isCellEditable={
+          contextMenu?.cellColumn
+            ? isColumnEditable(
+                columns.find((c) => c.name === contextMenu.cellColumn)!,
+              )
+            : true
+        }
         onCopy={handleCopy}
         onCut={handleCut}
         onPaste={handlePaste}
         onSetNull={handleSetNull}
         onSetEmptyString={handleSetEmptyString}
-        canPaste={clipboard !== undefined}
+        canPaste={true}
         hasCellPendingChange={
           contextMenu?.cellColumn
             ? (hasCellChange?.(contextMenu.rowKey, contextMenu.cellColumn) ??
@@ -739,6 +788,15 @@ export function DataGrid({
             : undefined
         }
         isSaving={isSaving}
+        selectedCellCount={selectedCellCount}
+        selectedCellsWithChangesCount={
+          getSelectedCellsWithChangesCount?.() ?? 0
+        }
+        onCopySelectedCells={onCopySelectedCells}
+        onCutSelectedCells={onCutSelectedCells}
+        onPasteToSelectedCells={onPasteToSelectedCells}
+        onSaveSelectedCells={onSaveSelectedCells}
+        onDiscardSelectedCells={onDiscardSelectedCells}
       />
     </div>
   );

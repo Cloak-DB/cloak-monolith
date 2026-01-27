@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import type { ColumnInfo } from '@/lib/db-types';
 import { Maximize2 } from 'lucide-react';
 
@@ -152,12 +152,14 @@ function TextEditor({
   multiline,
 }: TextEditorProps) {
   const [localValue, setLocalValue] = useState(value ?? '');
-  const inputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
 
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
+  // Select all text after focus (autoFocus handles the focus synchronously)
+  const handleFocus = useCallback(
+    (e: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+      e.target.select();
+    },
+    [],
+  );
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
@@ -177,11 +179,12 @@ function TextEditor({
   if (multiline) {
     return (
       <textarea
-        ref={inputRef as React.RefObject<HTMLTextAreaElement>}
         value={localValue}
         onChange={handleChange}
         onBlur={handleBlur}
         onKeyDown={onKeyDown}
+        onFocus={handleFocus}
+        autoFocus
         className={`${className} resize-none min-h-[40px]`}
         rows={2}
       />
@@ -190,12 +193,13 @@ function TextEditor({
 
   return (
     <input
-      ref={inputRef as React.RefObject<HTMLInputElement>}
       type="text"
       value={localValue}
       onChange={handleChange}
       onBlur={handleBlur}
       onKeyDown={onKeyDown}
+      onFocus={handleFocus}
+      autoFocus
       className={className}
     />
   );
@@ -216,12 +220,6 @@ function NumberEditor({
   onKeyDown,
 }: NumberEditorProps) {
   const [localValue, setLocalValue] = useState(value?.toString() ?? '');
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    inputRef.current?.focus();
-    inputRef.current?.select();
-  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const newValue = e.target.value;
@@ -241,15 +239,20 @@ function NumberEditor({
     onCommit();
   };
 
+  const handleFocus = (e: React.FocusEvent<HTMLInputElement>) => {
+    e.target.select();
+  };
+
   return (
     <input
-      ref={inputRef}
       type="text"
       inputMode="numeric"
       value={localValue}
       onChange={handleChange}
       onBlur={handleBlur}
       onKeyDown={onKeyDown}
+      onFocus={handleFocus}
+      autoFocus
       className="w-full h-full bg-white dark:bg-slate-700 border-2 border-yellow-500 text-gray-900 dark:text-slate-200 text-sm px-3 py-2 focus:outline-none"
     />
   );
@@ -275,12 +278,6 @@ function BooleanEditor({
     { label: 'NULL', value: null },
   ];
 
-  const selectRef = useRef<HTMLSelectElement>(null);
-
-  useEffect(() => {
-    selectRef.current?.focus();
-  }, []);
-
   const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const selected = e.target.value;
     if (selected === 'null') {
@@ -293,11 +290,11 @@ function BooleanEditor({
 
   return (
     <select
-      ref={selectRef}
       value={value === null ? 'null' : value.toString()}
       onChange={handleChange}
       onKeyDown={onKeyDown}
       onBlur={onCommit}
+      autoFocus
       className="w-full h-full bg-white dark:bg-slate-700 border-2 border-yellow-500 text-gray-900 dark:text-slate-200 text-sm px-3 py-2 focus:outline-none"
     >
       {options.map((opt) => (

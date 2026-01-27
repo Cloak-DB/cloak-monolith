@@ -64,7 +64,21 @@ function getShortcutGroups(isMac: boolean): ShortcutGroup[] {
       ],
     },
     {
-      title: 'Cell Selection & Copy',
+      title: 'Filtering',
+      shortcuts: [
+        { keys: [keys.mod.label, 'F'], description: 'Open filter popover' },
+        {
+          keys: [keys.mod.label, '1-9'],
+          description: 'Focus filter by number',
+        },
+        { keys: ['m'], description: 'Edit focused filter' },
+        { keys: [keys.delete.label], description: 'Delete focused filter' },
+        { keys: ['←', '→'], description: 'Navigate between filters' },
+        { keys: ['Esc'], description: 'Unfocus filter' },
+      ],
+    },
+    {
+      title: 'Cell Selection & Clipboard',
       shortcuts: [
         { keys: ['Click'], description: 'Edit cell' },
         {
@@ -77,6 +91,7 @@ function getShortcutGroups(isMac: boolean): ShortcutGroup[] {
         },
         { keys: [keys.alt.label, 'Click'], description: 'Copy cell value' },
         { keys: [keys.mod.label, 'C'], description: 'Copy selected cells' },
+        { keys: [keys.mod.label, 'V'], description: 'Paste to selected cells' },
       ],
     },
     {

@@ -47,6 +47,27 @@ Lors de la visualisation des données d'une table :
 | `Cmd+N` | Ajouter une nouvelle ligne |
 | `Suppr` | Supprimer les lignes sélectionnées |
 
+## Filtrage
+
+Filtrage rapide piloté au clavier :
+
+| Raccourci | Action |
+|-----------|--------|
+| `Cmd+F` | Ouvrir le popover de filtre |
+| `Cmd+1-9` | Sélectionner un filtre par numéro |
+| `m` | Modifier le filtre sélectionné |
+| `Suppr` | Supprimer le filtre sélectionné |
+| `←` / `→` | Naviguer entre les filtres |
+| `Esc` | Désélectionner le filtre |
+
+**Popover de filtre :**
+| Raccourci | Action |
+|-----------|--------|
+| `↑` / `↓` | Naviguer dans les suggestions de colonnes |
+| `Entrée` | Sélectionner la colonne / Appliquer le filtre |
+| `Retour` | Revenir à la sélection de colonne |
+| `Esc` | Fermer le popover |
+
 ## Sélection de Cellules
 
 Sélectionnez et modifiez plusieurs cellules à la fois :

@@ -47,6 +47,27 @@ When viewing table data:
 | `Cmd+N` | Add new row |
 | `Delete` | Delete selected rows |
 
+## Filtering
+
+Quick keyboard-driven filtering:
+
+| Shortcut | Action |
+|----------|--------|
+| `Cmd+F` | Open filter popover |
+| `Cmd+1-9` | Focus filter by number |
+| `m` | Edit focused filter |
+| `Delete` | Delete focused filter |
+| `←` / `→` | Navigate between filters |
+| `Esc` | Unfocus filter |
+
+**Filter popover:**
+| Shortcut | Action |
+|----------|--------|
+| `↑` / `↓` | Navigate column suggestions |
+| `Enter` | Select column / Apply filter |
+| `Backspace` | Go back to column selection |
+| `Esc` | Close popover |
+
 ## Cell Selection
 
 Select and edit multiple cells at once:

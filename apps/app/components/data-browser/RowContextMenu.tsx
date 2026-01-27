@@ -24,6 +24,7 @@ interface RowContextMenuProps {
   // Cell-level operations
   cellColumn?: string | null;
   cellValue?: unknown;
+  isCellEditable?: boolean;
   onCopy?: () => void;
   onCut?: () => void;
   onPaste?: () => void;
@@ -35,6 +36,14 @@ interface RowContextMenuProps {
   onSaveCellChange?: () => void;
   onDiscardCellChange?: () => void;
   isSaving?: boolean;
+  // Multi-cell selection operations
+  selectedCellCount?: number;
+  selectedCellsWithChangesCount?: number;
+  onCopySelectedCells?: () => void;
+  onCutSelectedCells?: () => void;
+  onPasteToSelectedCells?: () => void;
+  onSaveSelectedCells?: () => void;
+  onDiscardSelectedCells?: () => void;
 }
 
 export function RowContextMenu({
@@ -47,6 +56,7 @@ export function RowContextMenu({
   canDelete,
   cellColumn,
   cellValue,
+  isCellEditable = true,
   onCopy,
   onCut,
   onPaste,
@@ -57,6 +67,13 @@ export function RowContextMenu({
   onSaveCellChange,
   onDiscardCellChange,
   isSaving,
+  selectedCellCount = 0,
+  selectedCellsWithChangesCount = 0,
+  onCopySelectedCells,
+  onCutSelectedCells,
+  onPasteToSelectedCells,
+  onSaveSelectedCells,
+  onDiscardSelectedCells,
 }: RowContextMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
   const [adjustedPosition, setAdjustedPosition] = useState(position);
@@ -141,61 +158,94 @@ export function RowContextMenu({
       {hasCellOperations && (
         <>
           <div className="px-3 py-1 text-xs text-gray-500 dark:text-slate-500 uppercase tracking-wider">
-            Cell: {cellColumn}
+            {selectedCellCount > 1
+              ? `${selectedCellCount} cells selected`
+              : isCellEditable
+                ? `Cell: ${cellColumn}`
+                : `Cell: ${cellColumn} (read-only)`}
           </div>
+          {/* Copy - multi-cell or single cell (always allowed) */}
           <button
             onClick={() => {
-              onCopy?.();
+              if (selectedCellCount > 1) {
+                onCopySelectedCells?.();
+              } else {
+                onCopy?.();
+              }
               onClose();
             }}
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left"
           >
             <Copy size={14} />
-            Copy
+            {selectedCellCount > 1 ? `Copy ${selectedCellCount} cells` : 'Copy'}
           </button>
+          {/* Cut - multi-cell or single cell (requires editable) */}
           <button
             onClick={() => {
-              onCut?.();
+              if (!isCellEditable) return;
+              if (selectedCellCount > 1) {
+                onCutSelectedCells?.();
+              } else {
+                onCut?.();
+              }
               onClose();
             }}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left"
+            disabled={!isCellEditable}
+            title={!isCellEditable ? 'Cannot cut read-only cells' : undefined}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Scissors size={14} />
-            Cut
+            {selectedCellCount > 1 ? `Cut ${selectedCellCount} cells` : 'Cut'}
           </button>
+          {/* Paste - multi-cell or single cell (requires editable) */}
           <button
             onClick={() => {
-              onPaste?.();
+              if (!isCellEditable) return;
+              if (selectedCellCount > 1) {
+                onPasteToSelectedCells?.();
+              } else {
+                onPaste?.();
+              }
               onClose();
             }}
-            disabled={!canPaste}
+            disabled={!canPaste || !isCellEditable}
+            title={
+              !isCellEditable ? 'Cannot paste to read-only cells' : undefined
+            }
             className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Clipboard size={14} />
-            Paste
+            {selectedCellCount > 1
+              ? `Paste to ${selectedCellCount} cells`
+              : 'Paste'}
           </button>
-          <button
-            onClick={() => {
-              onSetNull?.();
-              onClose();
-            }}
-            disabled={cellValue === null}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <CircleSlash size={14} />
-            Set as NULL
-          </button>
-          <button
-            onClick={() => {
-              onSetEmptyString?.();
-              onClose();
-            }}
-            disabled={cellValue === ''}
-            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            <FileText size={14} />
-            Set as empty string
-          </button>
+          {/* Set NULL and Set Empty - only show for editable cells */}
+          {isCellEditable && (
+            <>
+              <button
+                onClick={() => {
+                  onSetNull?.();
+                  onClose();
+                }}
+                disabled={cellValue === null}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <CircleSlash size={14} />
+                Set as NULL
+              </button>
+              <button
+                onClick={() => {
+                  onSetEmptyString?.();
+                  onClose();
+                }}
+                disabled={cellValue === ''}
+                className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <FileText size={14} />
+                Set as empty string
+              </button>
+            </>
+          )}
           <div className="my-1 border-t border-gray-200 dark:border-slate-700" />
         </>
       )}
@@ -240,7 +290,41 @@ export function RowContextMenu({
       </button>
 
       {/* Cell-specific pending change operations */}
-      {hasCellPendingChange && (
+      {/* Show multi-cell options when multiple selected cells have changes */}
+      {selectedCellsWithChangesCount > 1 && (
+        <>
+          <div className="my-1 border-t border-gray-200 dark:border-slate-700" />
+          <div className="px-3 py-1 text-xs text-yellow-600 dark:text-yellow-400 uppercase tracking-wider">
+            {selectedCellsWithChangesCount} cells modified
+          </div>
+          <button
+            onClick={() => {
+              onSaveSelectedCells?.();
+              onClose();
+            }}
+            disabled={isSaving}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-yellow-700 dark:text-yellow-400 hover:text-yellow-800 dark:hover:text-yellow-300 hover:bg-yellow-50 dark:hover:bg-yellow-900/20 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Save size={14} />
+            {isSaving
+              ? 'Saving...'
+              : `Save ${selectedCellsWithChangesCount} cells`}
+          </button>
+          <button
+            onClick={() => {
+              onDiscardSelectedCells?.();
+              onClose();
+            }}
+            disabled={isSaving}
+            className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 text-left disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            <Undo2 size={14} />
+            Discard {selectedCellsWithChangesCount} cells
+          </button>
+        </>
+      )}
+      {/* Show single cell options when only one cell (or no multi-selection) */}
+      {hasCellPendingChange && selectedCellsWithChangesCount <= 1 && (
         <>
           <div className="my-1 border-t border-gray-200 dark:border-slate-700" />
           <div className="px-3 py-1 text-xs text-yellow-600 dark:text-yellow-400 uppercase tracking-wider">

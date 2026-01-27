@@ -25,6 +25,7 @@ import {
 import { SchemaRecoveryModal } from './SchemaRecoveryModal';
 import { Database } from 'lucide-react';
 import { fuzzySearchRows } from '@/lib/fuzzy-search';
+import { ALL_COLUMNS_KEY } from './filter';
 
 interface DataBrowserProps {
   schema: string;
@@ -106,8 +107,27 @@ export function DataBrowser({
   // Keyboard shortcuts modal
   const [showShortcutsModal, setShowShortcutsModal] = useState(false);
 
-  // Fuzzy search (client-side filtering on current page)
-  const [fuzzyQuery, setFuzzyQuery] = useState('');
+  // Ref to expose filter state actions for keyboard shortcuts
+  const filterStateRef = useRef<{
+    openPopover: () => void;
+    focusChip: (index: number) => void;
+    toggleHelp: () => void;
+  } | null>(null);
+
+  // Extract "All columns" (fuzzy search) filter value from filters
+  const allColumnsFilter = useMemo(
+    () => filters.find((f) => f.column === ALL_COLUMNS_KEY),
+    [filters],
+  );
+  const fuzzyQuery = allColumnsFilter?.value
+    ? String(allColumnsFilter.value)
+    : '';
+
+  // Filters to send to the server (exclude client-side only filters)
+  const serverFilters = useMemo(
+    () => filters.filter((f) => f.column !== ALL_COLUMNS_KEY),
+    [filters],
+  );
 
   // Navigation guard
   const navigationGuard = useNavigationGuard({
@@ -195,6 +215,17 @@ export function DataBrowser({
     [columns],
   );
 
+  // Check if a column is editable (not a primary key or auto-increment)
+  const isColumnEditable = useCallback(
+    (columnName: string): boolean => {
+      if (primaryKeyColumns.includes(columnName)) return false;
+      const column = columns.find((c) => c.name === columnName);
+      if (column?.default?.includes('nextval')) return false;
+      return true;
+    },
+    [columns, primaryKeyColumns],
+  );
+
   // Fetch data
   const { data, isLoading, error } = trpc.table.getRows.useQuery({
     schema,
@@ -204,7 +235,7 @@ export function DataBrowser({
     orderBy: sortColumn
       ? { column: sortColumn, direction: sortDir }
       : undefined,
-    filters: filters.length > 0 ? filters : undefined,
+    filters: serverFilters.length > 0 ? serverFilters : undefined,
   });
 
   // Mutations
@@ -375,6 +406,197 @@ export function DataBrowser({
       console.error('Failed to copy:', err);
     }
   }, [cellSelection, getRowDataFromKey, pendingChanges, toastSuccess]);
+
+  // Paste from clipboard to selected cells
+  const pasteToSelectedCells = useCallback(async () => {
+    if (cellSelection.selectedCount === 0) {
+      toastError('Select a cell first to paste', 2000);
+      return;
+    }
+
+    const column = cellSelection.selectedColumn;
+    if (!column) return;
+
+    // Check if column is editable (not a primary key or auto-increment)
+    if (!isColumnEditable(column)) {
+      toastError('Cannot paste to read-only column', 2000);
+      return;
+    }
+
+    try {
+      // Read from system clipboard
+      const clipboardText = await navigator.clipboard.readText();
+      if (!clipboardText) {
+        toastError('Clipboard is empty', 2000);
+        return;
+      }
+
+      // Try to parse the value appropriately
+      let pastedValue: unknown = clipboardText;
+
+      // Handle special string values
+      if (clipboardText === 'NULL' || clipboardText === 'null') {
+        pastedValue = null;
+      } else if (clipboardText === 'true') {
+        pastedValue = true;
+      } else if (clipboardText === 'false') {
+        pastedValue = false;
+      } else {
+        // Try to parse as JSON for objects/arrays
+        try {
+          const parsed = JSON.parse(clipboardText);
+          if (typeof parsed === 'object') {
+            pastedValue = parsed;
+          }
+        } catch {
+          // Not JSON, use as string
+        }
+      }
+
+      // Find the column info for validation
+      const columnInfo = columns.find((c) => c.name === column);
+
+      // Apply to all selected cells
+      let pasteCount = 0;
+      cellSelection.selectedCells.forEach((cellKey) => {
+        const lastColonIndex = cellKey.lastIndexOf(':');
+        const rowKey = cellKey.substring(0, lastColonIndex);
+
+        const rowData = getRowDataFromKey(rowKey);
+        if (rowData) {
+          // Validate the new value
+          let validationError = undefined;
+          if (columnInfo) {
+            const validationResult = validateCellValue(columnInfo, pastedValue);
+            if (!validationResult.valid && validationResult.error) {
+              validationError = validationResult.error;
+            }
+          }
+
+          if (rowKey.startsWith('new:')) {
+            const tempId = rowKey.replace('new:', '');
+            pendingChanges.updateNewRow(
+              tempId,
+              column,
+              pastedValue,
+              validationError,
+            );
+          } else {
+            const currentValue = rowData.row[column];
+            pendingChanges.setCellValue(
+              rowKey,
+              rowData.pk,
+              column,
+              currentValue,
+              pastedValue,
+            );
+            if (validationError) {
+              pendingChanges.setCellError(rowKey, column, validationError);
+            } else {
+              pendingChanges.clearCellError(rowKey, column);
+            }
+          }
+          pasteCount++;
+        }
+      });
+
+      if (pasteCount > 0) {
+        toastSuccess(
+          pasteCount === 1 ? 'Pasted' : `Pasted to ${pasteCount} cells`,
+          2000,
+        );
+      }
+
+      // Clear cell selection after paste
+      cellSelection.clearSelection();
+    } catch (err) {
+      // Clipboard access denied or failed
+      console.error('Failed to read clipboard:', err);
+      toastError('Failed to access clipboard', 2000);
+    }
+  }, [
+    cellSelection,
+    columns,
+    getRowDataFromKey,
+    pendingChanges,
+    toastSuccess,
+    toastError,
+    isColumnEditable,
+  ]);
+
+  // Cut selected cells (copy to clipboard, then set to null)
+  const cutSelectedCells = useCallback(async () => {
+    if (cellSelection.selectedCount === 0) return;
+
+    const column = cellSelection.selectedColumn;
+    if (!column) return;
+
+    // Check if column is editable (not a primary key or auto-increment)
+    if (!isColumnEditable(column)) {
+      toastError('Cannot cut from read-only column', 2000);
+      return;
+    }
+
+    // First, copy values to clipboard
+    const values: string[] = [];
+    const cellsToUpdate: Array<{
+      rowKey: string;
+      rowData: { row: Record<string, unknown>; pk: Record<string, unknown> };
+    }> = [];
+
+    cellSelection.selectedCells.forEach((cellKey) => {
+      const lastColonIndex = cellKey.lastIndexOf(':');
+      const rowKey = cellKey.substring(0, lastColonIndex);
+
+      const rowData = getRowDataFromKey(rowKey);
+      if (rowData) {
+        const pendingValue = pendingChanges.getCellValue(rowKey, column);
+        const value =
+          pendingValue !== undefined ? pendingValue : rowData.row[column];
+        values.push(value === null ? '' : String(value));
+        cellsToUpdate.push({ rowKey, rowData });
+      }
+    });
+
+    const text = values.join(', ');
+    try {
+      await navigator.clipboard.writeText(text);
+
+      // Then set all cells to null
+      cellsToUpdate.forEach(({ rowKey, rowData }) => {
+        if (rowKey.startsWith('new:')) {
+          const tempId = rowKey.replace('new:', '');
+          pendingChanges.updateNewRow(tempId, column, null);
+        } else {
+          const currentValue = rowData.row[column];
+          pendingChanges.setCellValue(
+            rowKey,
+            rowData.pk,
+            column,
+            currentValue,
+            null,
+          );
+        }
+      });
+
+      const count = cellsToUpdate.length;
+      toastSuccess(
+        count === 1 ? 'Cut to clipboard' : `Cut ${count} cells to clipboard`,
+        2000,
+      );
+      cellSelection.clearSelection();
+    } catch (err) {
+      console.error('Failed to cut:', err);
+      toastError('Failed to access clipboard', 2000);
+    }
+  }, [
+    cellSelection,
+    getRowDataFromKey,
+    pendingChanges,
+    toastSuccess,
+    toastError,
+    isColumnEditable,
+  ]);
 
   // Handle cell selection
   const handleCellSelect = useCallback(
@@ -844,6 +1066,112 @@ export function DataBrowser({
     [pendingChanges],
   );
 
+  // Get count of selected cells that have pending changes
+  const getSelectedCellsWithChangesCount = useCallback(() => {
+    if (cellSelection.selectedCount === 0) return 0;
+
+    const column = cellSelection.selectedColumn;
+    if (!column) return 0;
+
+    let count = 0;
+    cellSelection.selectedCells.forEach((cellKey) => {
+      const lastColonIndex = cellKey.lastIndexOf(':');
+      const rowKey = cellKey.substring(0, lastColonIndex);
+      if (pendingChanges.hasCellChange(rowKey, column)) {
+        count++;
+      }
+    });
+    return count;
+  }, [cellSelection, pendingChanges]);
+
+  // Save all selected cells with pending changes
+  const handleSaveSelectedCells = useCallback(async () => {
+    const column = cellSelection.selectedColumn;
+    if (!column) return;
+
+    setIsSaving(true);
+    setSaveError(null);
+
+    try {
+      // Collect all cell changes for selected cells
+      const cellsToSave: Array<{
+        rowKey: string;
+        column: string;
+      }> = [];
+
+      cellSelection.selectedCells.forEach((cellKey) => {
+        const lastColonIndex = cellKey.lastIndexOf(':');
+        const rowKey = cellKey.substring(0, lastColonIndex);
+        if (pendingChanges.hasCellChange(rowKey, column)) {
+          cellsToSave.push({ rowKey, column });
+        }
+      });
+
+      // Save each cell
+      for (const { rowKey, column: col } of cellsToSave) {
+        const cellChange = pendingChanges.getCellChangeForSave(rowKey, col);
+        if (cellChange) {
+          await updateRowMutation.mutateAsync({
+            schema,
+            table,
+            primaryKey: cellChange.primaryKey,
+            data: cellChange.data,
+          });
+          pendingChanges.markCellSaved(rowKey, col);
+        }
+      }
+
+      await utils.table.getRows.invalidate({ schema, table });
+      toastSuccess(
+        cellsToSave.length === 1
+          ? 'Cell saved'
+          : `${cellsToSave.length} cells saved`,
+        2000,
+      );
+      cellSelection.clearSelection();
+    } catch (err) {
+      setSaveError(err instanceof Error ? err.message : 'Failed to save');
+      toastError('Failed to save changes', 3000);
+    } finally {
+      setIsSaving(false);
+    }
+  }, [
+    cellSelection,
+    pendingChanges,
+    updateRowMutation,
+    schema,
+    table,
+    utils.table.getRows,
+    toastSuccess,
+    toastError,
+  ]);
+
+  // Discard all selected cells with pending changes
+  const handleDiscardSelectedCells = useCallback(() => {
+    const column = cellSelection.selectedColumn;
+    if (!column) return;
+
+    let discardCount = 0;
+    cellSelection.selectedCells.forEach((cellKey) => {
+      const lastColonIndex = cellKey.lastIndexOf(':');
+      const rowKey = cellKey.substring(0, lastColonIndex);
+      if (pendingChanges.hasCellChange(rowKey, column)) {
+        pendingChanges.discardCellChange(rowKey, column);
+        discardCount++;
+      }
+    });
+
+    if (discardCount > 0) {
+      toastSuccess(
+        discardCount === 1
+          ? 'Change discarded'
+          : `${discardCount} changes discarded`,
+        2000,
+      );
+    }
+    cellSelection.clearSelection();
+  }, [cellSelection, pendingChanges, toastSuccess]);
+
   // Refs for keyboard handler to avoid re-attaching listeners
   const keyboardStateRef = useRef({
     isDirty: pendingChanges.state.isDirty,
@@ -857,6 +1185,7 @@ export function DataBrowser({
     handleNewRow,
     handleDeleteSelectedRequest,
     copySelectedCells,
+    pasteToSelectedCells,
     clearRowSelection: rowSelection.clearSelection,
     clearCellSelection: cellSelection.clearSelection,
   });
@@ -877,6 +1206,7 @@ export function DataBrowser({
       handleNewRow,
       handleDeleteSelectedRequest,
       copySelectedCells,
+      pasteToSelectedCells,
       clearRowSelection: rowSelection.clearSelection,
       clearCellSelection: cellSelection.clearSelection,
     };
@@ -902,6 +1232,21 @@ export function DataBrowser({
 
       // Skip other shortcuts if typing
       if (isTyping) return;
+
+      // Cmd+F to open filter popover
+      if ((e.metaKey || e.ctrlKey) && e.key === 'f') {
+        e.preventDefault();
+        filterStateRef.current?.openPopover();
+        return;
+      }
+
+      // Cmd+1-9 to focus filter chips
+      if ((e.metaKey || e.ctrlKey) && e.key >= '1' && e.key <= '9') {
+        const chipIndex = parseInt(e.key, 10) - 1;
+        e.preventDefault();
+        filterStateRef.current?.focusChip(chipIndex);
+        return;
+      }
 
       // Ctrl+S to save
       if ((e.metaKey || e.ctrlKey) && e.key === 's') {
@@ -934,6 +1279,16 @@ export function DataBrowser({
       ) {
         e.preventDefault();
         actions.copySelectedCells();
+      }
+
+      // Cmd+V to paste to selected cells
+      if (
+        (e.metaKey || e.ctrlKey) &&
+        e.key === 'v' &&
+        state.cellSelectionCount > 0
+      ) {
+        e.preventDefault();
+        actions.pasteToSelectedCells();
       }
 
       // Escape to clear selections
@@ -998,8 +1353,9 @@ export function DataBrowser({
         orderBy={
           sortColumn ? { column: sortColumn, direction: sortDir } : undefined
         }
-        fuzzyQuery={fuzzyQuery}
-        onFuzzyQueryChange={setFuzzyQuery}
+        visibleRowCount={filteredRows.length}
+        totalRowCount={data?.rows?.length ?? 0}
+        filterStateRef={filterStateRef}
       />
 
       {/* Data Grid */}
@@ -1046,6 +1402,14 @@ export function DataBrowser({
         onSaveCellChange={handleSaveCellChange}
         onDiscardCellChange={handleDiscardCellChange}
         isSaving={isSaving}
+        // Multi-cell selection operations (for context menu)
+        selectedCellCount={cellSelection.selectedCount}
+        onCopySelectedCells={copySelectedCells}
+        onCutSelectedCells={cutSelectedCells}
+        onPasteToSelectedCells={pasteToSelectedCells}
+        onSaveSelectedCells={handleSaveSelectedCells}
+        onDiscardSelectedCells={handleDiscardSelectedCells}
+        getSelectedCellsWithChangesCount={getSelectedCellsWithChangesCount}
       />
 
       {/* Pagination */}

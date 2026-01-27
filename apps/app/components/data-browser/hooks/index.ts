@@ -20,3 +20,5 @@ export type {
   UseSchemaRecoveryOptions,
   UseSchemaRecoveryReturn,
 } from './useSchemaRecovery';
+export { useFilterState } from './useFilterState';
+export type { FilterState, UseFilterStateReturn } from './useFilterState';

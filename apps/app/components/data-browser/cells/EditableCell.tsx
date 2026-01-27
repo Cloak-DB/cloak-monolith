@@ -78,7 +78,7 @@ export function EditableCell({
     }
   }, [value, isEditing]);
 
-  const handleClick = useCallback(
+  const handleMouseDown = useCallback(
     (e: React.MouseEvent) => {
       // Check for selection/copy modifiers first
       if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) {
@@ -94,6 +94,9 @@ export function EditableCell({
 
       // Regular click - check if long content should open modal
       if (isEditable && !isEditing) {
+        // Prevent default to avoid focus issues with the new input
+        e.preventDefault();
+
         if (shouldExpandToModal(value) && onExpand) {
           // Open modal for long content (> 70 chars)
           onExpand();
@@ -101,7 +104,8 @@ export function EditableCell({
           // Inline edit for short content
           setEditValue(value);
           setIsEditing(true);
-          onEditStart?.();
+          // Defer parent notification to not block UI
+          if (onEditStart) requestAnimationFrame(onEditStart);
         }
       }
     },
@@ -119,7 +123,8 @@ export function EditableCell({
           // Inline edit for short content
           setEditValue(value);
           setIsEditing(true);
-          onEditStart?.();
+          // Defer parent notification to not block UI
+          if (onEditStart) requestAnimationFrame(onEditStart);
         }
       }
     },
@@ -172,9 +177,10 @@ export function EditableCell({
   // Build class names
   const baseClasses =
     'px-3 py-2 h-full flex items-center text-gray-800 dark:text-slate-300 max-w-[300px] truncate relative';
-  const editableClasses = isEditable
+  // All cells are interactive (for selection/copy), editable ones also show edit cursor
+  const interactiveClasses = isEditable
     ? 'cursor-pointer hover:bg-gray-100 dark:hover:bg-slate-700/50'
-    : '';
+    : 'cursor-default hover:bg-gray-50 dark:hover:bg-slate-800/50';
   // Error state takes precedence over modified state
   const stateClasses = hasError
     ? 'bg-red-100 dark:bg-red-900/20'
@@ -198,11 +204,11 @@ export function EditableCell({
 
   return (
     <div
-      className={`${baseClasses} ${editableClasses} ${stateClasses} ${selectedClasses} ${previewClasses}`}
-      onClick={handleClick}
+      className={`${baseClasses} ${interactiveClasses} ${stateClasses} ${selectedClasses} ${previewClasses}`}
+      onMouseDown={handleMouseDown}
       onKeyDown={handleKeyDown}
-      tabIndex={isEditable ? 0 : -1}
-      role={isEditable ? 'button' : undefined}
+      tabIndex={0}
+      role="gridcell"
       title={tooltipText}
     >
       <span className="truncate">{showValue}</span>
