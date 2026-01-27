@@ -4,8 +4,13 @@ import { useDevContext } from '@/lib/dev/context';
 
 /**
  * Small dev trigger button for the header.
+ * Returns null in production builds (tree-shaken).
  */
 export function DevTrigger() {
+  if (process.env.NODE_ENV !== 'development') {
+    return null;
+  }
+
   const context = useDevContext();
   const toggleDrawer = context?.toggleDrawer;
   const forceLoading = context?.forceLoading ?? false;
